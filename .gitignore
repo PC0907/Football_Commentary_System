@@ -1,0 +1,29 @@
+# Ignore test videos
+test_videos/
+test_videos/*.mp4
+test_videos/*.avi
+test_videos/*.mov
+test_videos/*.mkv
+test_videos/*.flv
+test_videos/*.wmv
+test_videos/*.webm
+
+# Ignore output videos
+output_videos/
+output_videos/*.mp4
+output_videos/*.avi
+output_videos/*.mov
+output_videos/*.mkv
+output_videos/*.flv
+output_videos/*.wmv
+output_videos/*.webm
+
+# General video files in any directory
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.flv
+*.wmv
+*.webm
+

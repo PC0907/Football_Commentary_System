@@ -23,12 +23,13 @@ Football commentary plays an essential role in enhancing the experience for view
 
 **Objectives**:
 - **Player and Ball Tracking**: Track players and the ball across frames.
+- **Homography to a 2D plane (bird's eye view)**: Transform to a bird's eye view to gain positional insight about the game.
 - **Event Detection**: Detect key events like goals, fouls, and shots.
 - **Commentary Generation**: Produce contextual commentary that adds depth and excitement.
 
 ## Project Structure (Tentative)
 
-Below is the tentative project structure to keep components organized and modular. The structure may evolve as development progresses.
+Below is a tentative project structure to keep components organized and modular. The structure may evolve as development progresses.
 
 ```plaintext
 football-commentary-generator/
@@ -52,10 +53,12 @@ football-commentary-generator/
 │   ├── processed/              # Processed videos
 │   └── annotations/            # Training/testing annotations
 │
-├── models/                     # Model files
-│   ├── color_identification/   # Color detection models
-│   ├── player_tracking/        # Player tracking models
-│   └── commentary/             # Commentary models
+├── modules/                    # Modules
+│   ├── color_identification/   # Color detection module
+│   ├── player_tracking/        # Player tracking module
+│   ├── homography/		 # Homography module
+│   └── commentary/             # Commentary module
+│
 └── docs/                       # Documentation
     ├── architecture.md         # Project architecture details
     └── api_reference.md        # API documentation for modules

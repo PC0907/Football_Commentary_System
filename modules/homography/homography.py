@@ -63,7 +63,9 @@ dst = cv.imread('imgs/dst.jpg')
 
 # Automatically detect keypoints in the src image
 src_list = detect_field_keypoints(src)
-# Manually enter corresponding dst points, e.g., for demonstration
+"""
+Prepare a 2D Football Field image/diagram; make a 1080p representation, mark keypoints -> name keypoints ->  note pixel coordinates -> add it to dst_list
+"""
 dst_list = [[50, 50], [400, 50], [50, 400], [400, 400], [225, 225]]
 
 # Verify detected points and calculate plan view

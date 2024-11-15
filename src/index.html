@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Commentary Video Display</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1 style="text-align: center; color: #2C3E50;">Football Commentary Video Display</h1>
+
+    <div class="form-container">
+        <label for="videoName">Enter Video Name (e.g., video.mp4):</label>
+        <input type="text" id="videoName" placeholder="Enter video name" />
+        <button class="button" onclick="loadVideos()">Load Videos</button>
+    </div>
+
+    <div class="container" id="videoContainer" style="display:none;">
+        <div class="video-box">
+            <video id="inputVideo" controls muted ontimeupdate="syncVideos()">
+                <source id="inputVideoSource" type="video/mp4">
+            </video>
+        </div>
+        <div class="video-box">
+            <video id="outputVideo" controls muted>
+                <source id="outputVideoSource" type="video/mp4">
+            </video>
+        </div>
+    </div>
+    <div class="controls">
+        <button class="button" onclick="playPause()">Play/Pause</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

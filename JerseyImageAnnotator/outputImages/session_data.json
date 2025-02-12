@@ -1,0 +1,27 @@
+{
+    "start_time": "2025-02-12 13:57:56",
+    "images_annotated": 5,
+    "output_labels": [
+        {
+            "image": "/home/fawwaz/JerseyImageAnnotator/inputImages/IMG_test_00000001.jpg",
+            "label": "10"
+        },
+        {
+            "image": "/home/fawwaz/JerseyImageAnnotator/inputImages/IMG_test_00000002.jpg",
+            "label": "36"
+        },
+        {
+            "image": "/home/fawwaz/JerseyImageAnnotator/inputImages/IMG_test_00000003.jpg",
+            "label": "91"
+        },
+        {
+            "image": "/home/fawwaz/JerseyImageAnnotator/inputImages/IMG_test_00000004.jpg",
+            "label": "27"
+        },
+        {
+            "image": "/home/fawwaz/JerseyImageAnnotator/inputImages/IMG_test_00000005.jpg",
+            "label": "54"
+        }
+    ],
+    "end_time": "2025-02-12 13:58:50"
+}

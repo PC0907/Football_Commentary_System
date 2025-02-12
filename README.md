@@ -1,7 +1,4 @@
 
-# Football_Commentary_System
-Major Project 
-
 # Automatic Football Commentary Generator
 
 Welcome to the **Automatic Football Commentary Generator** project! This repository contains code for a system that generates football commentary automatically by analyzing match footage. The system is designed to detect, classify, and incorporate player names, team names, and key events into commentary, giving users a comprehensive play-by-play experience.

@@ -64,26 +64,3 @@ football-commentary-generator/
     ├── architecture.md         # Project architecture details
     └── api_reference.md        # API documentation for modules
 ```
-
-## Future Improvements
-
-- **Tooltips:**  
-  Add descriptive tooltips to buttons and controls to help users quickly understand their functionality.
-
-- **Undo/Redo Functionality:**  
-  Implement an undo/redo mechanism to allow users to easily correct mistakes during annotation.
-
-- **Customizable Shortcuts:**  
-  Allow users to define and modify keybindings according to their personal workflow preferences.
-
-- **Theme Toggle:**  
-  Provide an option to switch between dark and light modes or even offer customizable color schemes.
-
-- **Auto-Save & Backup:**  
-  Integrate automatic saving and backup features to prevent data loss in case of unexpected closures or errors.
-
-- **Drag-and-Drop Support:**  
-  Enable drag-and-drop functionality for easier loading of images or folders into the application.
-
-- **Real-Time Augmentation Preview:**  
-  Implement a preview panel that shows live augmentation effects on the current image before finalizing the annotation.

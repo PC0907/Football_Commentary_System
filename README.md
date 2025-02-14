@@ -63,6 +63,8 @@ football-commentary-generator/
 └── docs/                       # Documentation
     ├── architecture.md         # Project architecture details
     └── api_reference.md        # API documentation for modules
+```
+
 ## Future Improvements
 
 - **Tooltips:**  

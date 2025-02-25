@@ -498,17 +498,15 @@ def get_left_team_label(players_boxes, kits_colors, kits_clf):
 
 def annotate_video(video_path, model):
     """
-    Loads the input video and runs the object detection algorithm on its frames, finally it annotates the frame with
-    the appropriate labels and tracks players using DeepSORT
-
+    Loads the input video and runs the object detection algorithm on its frames, 
+    annotates the frame with appropriate labels and tracks players using DeepSORT
+    
     Args:
         video_path: String the holds the path of the input video
         model: Object that represents the trained object detection model
     Returns:
+        None
     """
-    # Initialize DeepSORT trackers - one for each team and referees
-    
-    
     # Create separate trackers for each team and others
     deepsort_left = DeepSort(
         max_age=30,        # Maximum frames to keep track of players after they disappear
@@ -539,6 +537,9 @@ def annotate_video(video_path, model):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 
+    # Create output directory if it doesn't exist
+    os.makedirs('./output', exist_ok=True)
+    
     video_name = video_path.split('/')[-1]
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     output_video = cv2.VideoWriter('./output/'+video_name.split('.')[0] + "_tracked.mp4",
@@ -641,12 +642,6 @@ def annotate_video(video_path, model):
                     formatted_dets.append(([x1, y1, w, h], conf, str(left_team_classes[i])))
                 
                 track_left = deepsort_left.update_tracks(formatted_dets, frame=annotated_frame)
-                
-                # Debug the Track object to see what attributes/methods it has
-                if track_left:
-                    print(dir(track_left[0]))  # Print all attributes/methods of the first track
-                    # Or print specific information
-                    print(f"Track object: {track_left[0]}")
             else:
                 track_left = []
                 
@@ -674,64 +669,139 @@ def annotate_video(video_path, model):
             else:
                 track_others = []
             
-            # Draw tracking results for left team (format might need to be adjusted based on debug output)
+            # Draw tracking results for left team
             for track in track_left:
-                # We need to modify this based on the Track object structure
-                # For now, let's use placeholder code until we know the exact structure
-                try:
-                    # Assuming track has these methods/attributes based on DeepSORT implementations
-                    bbox = track.to_tlbr()  # Try common method names
-                    x1, y1, x2, y2 = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
-                    track_id = track.track_id
-                    
-                    # Try to get class - might be stored differently
-                    if hasattr(track, 'class_id'):
-                        class_id = track.class_id
-                    elif hasattr(track, 'class_'):
-                        class_id = track.class_
-                    elif hasattr(track, 'get_class'):
-                        class_id = track.get_class()
-                    else:
-                        # Fallback to first class as default
-                        class_id = 0
-                    
-                    # Draw bounding box
-                    label_idx = int(class_id)  # 0 for Player-L, 2 for GK-L
-                    
-                    cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), box_colors[str(label_idx)], 2)
-                    
-                    # Draw ID label
-                    text = f"{labels[label_idx]}-{track_id}"
+                if not track.is_confirmed():
+                    continue
+                
+                # Get bounding box coordinates
+                bbox = track.to_tlbr()
+                x1, y1, x2, y2 = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+                track_id = track.track_id
+                
+                # Get class using get_det_class method
+                class_id = int(track.get_det_class())
+                
+                # Draw bounding box
+                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), box_colors[str(class_id)], 2)
+                
+                # Draw ID label
+                text = f"{labels[class_id]}-{track_id}"
+                cv2.putText(annotated_frame, text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, 
+                            box_colors[str(class_id)], 2)
+                
+                # Update track history
+                if track_id not in track_history_left:
+                    track_history_left[track_id] = []
+                
+                # Calculate center position
+                center = (int((x1 + x2) / 2), int((y1 + y2) / 2))
+                track_history_left[track_id].append(center)
+                
+                # Draw tracking line (last 30 frames)
+                if len(track_history_left[track_id]) > 1:
+                    for i in range(1, min(30, len(track_history_left[track_id]))):
+                        if i == 1:  # Draw thicker line for the most recent movement
+                            thickness = 2
+                        else:
+                            thickness = max(1, 3 - i // 10)  # Thinner lines for older positions
+                        
+                        cv2.line(annotated_frame, 
+                                track_history_left[track_id][-i], 
+                                track_history_left[track_id][-i-1], 
+                                box_colors[str(class_id)], 
+                                thickness)
+            
+            # Draw tracking results for right team
+            for track in track_right:
+                if not track.is_confirmed():
+                    continue
+                
+                # Get bounding box coordinates
+                bbox = track.to_tlbr()
+                x1, y1, x2, y2 = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+                track_id = track.track_id
+                
+                # Get class using get_det_class method
+                class_id = int(track.get_det_class())
+                
+                # Draw bounding box
+                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), box_colors[str(class_id)], 2)
+                
+                # Draw ID label
+                text = f"{labels[class_id]}-{track_id}"
+                cv2.putText(annotated_frame, text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, 
+                            box_colors[str(class_id)], 2)
+                
+                # Update track history
+                if track_id not in track_history_right:
+                    track_history_right[track_id] = []
+                
+                # Calculate center position
+                center = (int((x1 + x2) / 2), int((y1 + y2) / 2))
+                track_history_right[track_id].append(center)
+                
+                # Draw tracking line (last 30 frames)
+                if len(track_history_right[track_id]) > 1:
+                    for i in range(1, min(30, len(track_history_right[track_id]))):
+                        if i == 1:  # Draw thicker line for the most recent movement
+                            thickness = 2
+                        else:
+                            thickness = max(1, 3 - i // 10)  # Thinner lines for older positions
+                        
+                        cv2.line(annotated_frame, 
+                                track_history_right[track_id][-i], 
+                                track_history_right[track_id][-i-1], 
+                                box_colors[str(class_id)], 
+                                thickness)
+            
+            # Draw tracking results for others (ball, referees, staff)
+            for track in track_others:
+                if not track.is_confirmed():
+                    continue
+                
+                # Get bounding box coordinates
+                bbox = track.to_tlbr()
+                x1, y1, x2, y2 = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+                track_id = track.track_id
+                
+                # Get class using get_det_class method
+                class_id = int(track.get_det_class())
+                
+                # Draw bounding box
+                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), box_colors[str(class_id)], 2)
+                
+                # Draw ID label (not for the ball)
+                if class_id != 4:  # Not a ball
+                    text = f"{labels[class_id]}-{track_id}"
                     cv2.putText(annotated_frame, text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, 
-                                box_colors[str(label_idx)], 2)
-                    
-                    # Update track history
-                    if track_id not in track_history_left:
-                        track_history_left[track_id] = []
+                                box_colors[str(class_id)], 2)
+                else:
+                    cv2.putText(annotated_frame, labels[class_id], (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, 
+                                box_colors[str(class_id)], 2)
+                
+                # Update track history (not for the ball)
+                if class_id != 4:  # Not a ball
+                    if track_id not in track_history_others:
+                        track_history_others[track_id] = []
                     
                     # Calculate center position
                     center = (int((x1 + x2) / 2), int((y1 + y2) / 2))
-                    track_history_left[track_id].append(center)
+                    track_history_others[track_id].append(center)
                     
                     # Draw tracking line (last 30 frames)
-                    if len(track_history_left[track_id]) > 1:
-                        for i in range(1, min(30, len(track_history_left[track_id]))):
-                            if i == 1:  # Draw thicker line for the most recent movement
+                    if len(track_history_others[track_id]) > 1:
+                        for i in range(1, min(30, len(track_history_others[track_id]))):
+                            if i == 1:
                                 thickness = 2
                             else:
-                                thickness = max(1, 3 - i // 10)  # Thinner lines for older positions
+                                thickness = max(1, 3 - i // 10)
                             
                             cv2.line(annotated_frame, 
-                                    track_history_left[track_id][-i], 
-                                    track_history_left[track_id][-i-1], 
-                                    box_colors[str(label_idx)], 
+                                    track_history_others[track_id][-i], 
+                                    track_history_others[track_id][-i-1], 
+                                    box_colors[str(class_id)], 
                                     thickness)
-                except Exception as e:
-                    print(f"Error processing left team track: {e}")
-            
-            # (Similar adjustments needed for right_team and others sections)
-            # For brevity, I'm including just the left team visualization code
-            # You should apply similar changes to the right team and others tracking code
             
             # Add frame counter
             cv2.putText(annotated_frame, f"Frame: {frame_count}", (10, 30), 
@@ -747,7 +817,6 @@ def annotate_video(video_path, model):
     cv2.destroyAllWindows()
     output_video.release()
     cap.release()
-    
 if __name__ == "__main__":
 
     labels = ["Player-L", "Player-R", "GK-L", "GK-R", "Ball", "Main Ref", "Side Ref", "Staff"]

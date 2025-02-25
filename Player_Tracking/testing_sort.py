@@ -194,8 +194,7 @@ def annotate_video(video_path, model):
     Returns:
     """
     # Initialize DeepSORT trackers - one for each team and referees
-    cfg = get_config()
-    cfg.merge_from_file("./deep_sort_pytorch/configs/deep_sort.yaml")
+    
     
     # Create separate trackers for each team and others
     deepsort_left = DeepSort(

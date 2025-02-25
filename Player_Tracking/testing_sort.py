@@ -321,19 +321,38 @@ def annotate_video(video_path, model):
             # Update DeepSORT trackers with detections
             if left_team_dets:
                 left_team_dets = np.array(left_team_dets)
-                track_left = deepsort_left.update(left_team_dets, np.array(left_team_classes), annotated_frame)
+                formatted_dets = []
+                for i, det in enumerate(left_team_dets):
+                    x1, y1, x2, y2, conf = det
+                    w, h = x2-x1, y2-y1
+                    formatted_dets.append(([x1, y1, w, h], conf, str(left_team_classes[i])))
+                
+                track_left = deepsort_left.update_tracks(formatted_dets, frame=annotated_frame)
+ 
             else:
                 track_left = []
                 
             if right_team_dets:
                 right_team_dets = np.array(right_team_dets)
-                track_right = deepsort_right.update(right_team_dets, np.array(right_team_classes), annotated_frame)
+                formatted_dets_right = []
+                for i, det in enumerate(right_team_dets):
+                    x1, y1, x2, y2, conf = det
+                    w, h = x2-x1, y2-y1
+                    formatted_dets_right.append(([x1, y1, w, h], conf, str(right_team_classes[i])))
+                
+                track_right = deepsort_right.update_tracks(formatted_dets_right, frame=annotated_frame)
             else:
                 track_right = []
                 
             if other_dets:
                 other_dets = np.array(other_dets)
-                track_others = deepsort_others.update(other_dets, np.array(other_classes), annotated_frame)
+                formatted_dets_others = []
+                for i, det in enumerate(other_dets):
+                    x1, y1, x2, y2, conf = det
+                    w, h = x2-x1, y2-y1
+                    formatted_dets_others.append(([x1, y1, w, h], conf, str(other_classes[i])))
+                
+                track_others = deepsort_others.update_tracks(formatted_dets_others, frame=annotated_frame)
             else:
                 track_others = []
             

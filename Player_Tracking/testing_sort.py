@@ -10,11 +10,7 @@ import os
 import time
 
 # DeepSORT imports
-import sys
-sys.path.append('./deep_sort_pytorch')
-from deep_sort.utils.parser import get_config
-from deep_sort.deep_sort import DeepSort
-
+from deep_sort_realtime.deepsort_tracker import DeepSort
 
 def get_grass_color(img):
     """

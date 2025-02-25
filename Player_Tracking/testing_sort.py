@@ -198,36 +198,27 @@ def annotate_video(video_path, model):
     
     # Create separate trackers for each team and others
     deepsort_left = DeepSort(
-        cfg.DEEPSORT.REID_CKPT,
-        max_dist=cfg.DEEPSORT.MAX_DIST,
-        min_confidence=cfg.DEEPSORT.MIN_CONFIDENCE,
-        nms_max_overlap=cfg.DEEPSORT.NMS_MAX_OVERLAP,
-        max_iou_distance=cfg.DEEPSORT.MAX_IOU_DISTANCE,
-        max_age=cfg.DEEPSORT.MAX_AGE,
-        n_init=cfg.DEEPSORT.N_INIT,
-        nn_budget=cfg.DEEPSORT.NN_BUDGET
+        max_age=30,        # Maximum frames to keep track of players after they disappear
+        n_init=3,          # Number of frames to confirm a new track
+        max_iou_distance=0.7,  # IOU threshold
+        max_cosine_distance=0.2,  # Appearance feature threshold
+        nn_budget=100      # Maximum appearance features to store
     )
     
     deepsort_right = DeepSort(
-        cfg.DEEPSORT.REID_CKPT,
-        max_dist=cfg.DEEPSORT.MAX_DIST,
-        min_confidence=cfg.DEEPSORT.MIN_CONFIDENCE,
-        nms_max_overlap=cfg.DEEPSORT.NMS_MAX_OVERLAP,
-        max_iou_distance=cfg.DEEPSORT.MAX_IOU_DISTANCE,
-        max_age=cfg.DEEPSORT.MAX_AGE,
-        n_init=cfg.DEEPSORT.N_INIT,
-        nn_budget=cfg.DEEPSORT.NN_BUDGET
+        max_age=30,
+        n_init=3,
+        max_iou_distance=0.7,
+        max_cosine_distance=0.2,
+        nn_budget=100
     )
     
     deepsort_others = DeepSort(
-        cfg.DEEPSORT.REID_CKPT,
-        max_dist=cfg.DEEPSORT.MAX_DIST,
-        min_confidence=cfg.DEEPSORT.MIN_CONFIDENCE,
-        nms_max_overlap=cfg.DEEPSORT.NMS_MAX_OVERLAP,
-        max_iou_distance=cfg.DEEPSORT.MAX_IOU_DISTANCE,
-        max_age=cfg.DEEPSORT.MAX_AGE,
-        n_init=cfg.DEEPSORT.N_INIT,
-        nn_budget=cfg.DEEPSORT.NN_BUDGET
+        max_age=30,
+        n_init=3,
+        max_iou_distance=0.7,
+        max_cosine_distance=0.2,
+        nn_budget=100
     )
     
     cap = cv2.VideoCapture(video_path)

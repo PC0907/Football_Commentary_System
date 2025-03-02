@@ -1,0 +1,9 @@
+2025-03-02 21:24:35,835 - INFO - Application started
+2025-03-02 21:24:47,558 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
+2025-03-02 21:24:55,737 - INFO - Theme changed to Blue
+2025-03-02 21:24:57,274 - INFO - Theme changed to Green
+2025-03-02 21:24:59,017 - INFO - Theme changed to Dark
+2025-03-02 21:25:00,169 - INFO - Theme changed to Green
+2025-03-02 21:25:06,341 - INFO - Video processing started
+2025-03-02 21:25:07,844 - INFO - Video processing completed: /home/fawwaz/football_commentary_output/processed_CityUtdR.mp4
+2025-03-02 21:25:44,050 - INFO - Application closed

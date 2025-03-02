@@ -353,20 +353,38 @@ class FootballCommentaryApp(QMainWindow):
             else:
                 # Return default team sheet if no saved one exists
                 return {
-                    "team_name": "Default FC",
-                    "players": [
-                        {"number": 1, "name": "John Smith", "position": "Goalkeeper"},
-                        {"number": 2, "name": "James Brown", "position": "Defender"},
-                        {"number": 3, "name": "Michael Johnson", "position": "Defender"},
-                        {"number": 4, "name": "Robert Wilson", "position": "Defender"},
-                        {"number": 5, "name": "David Jones", "position": "Defender"},
-                        {"number": 6, "name": "Thomas Taylor", "position": "Midfielder"},
-                        {"number": 7, "name": "Christopher Anderson", "position": "Midfielder"},
-                        {"number": 8, "name": "Joseph Martinez", "position": "Midfielder"},
-                        {"number": 9, "name": "Daniel Robinson", "position": "Forward"},
-                        {"number": 10, "name": "Paul Wright", "position": "Forward"},
-                        {"number": 11, "name": "Mark Walker", "position": "Forward"}
-                    ]
+                    "team_a": {
+                        "team_name": "Team A",
+                        "players": [
+                            {"number": 1, "name": "John Smith", "position": "Goalkeeper"},
+                            {"number": 2, "name": "James Brown", "position": "Defender"},
+                            {"number": 3, "name": "Michael Johnson", "position": "Defender"},
+                            {"number": 4, "name": "Robert Wilson", "position": "Defender"},
+                            {"number": 5, "name": "David Jones", "position": "Defender"},
+                            {"number": 6, "name": "Thomas Taylor", "position": "Midfielder"},
+                            {"number": 7, "name": "Christopher Anderson", "position": "Midfielder"},
+                            {"number": 8, "name": "Joseph Martinez", "position": "Midfielder"},
+                            {"number": 9, "name": "Daniel Robinson", "position": "Forward"},
+                            {"number": 10, "name": "Paul Wright", "position": "Forward"},
+                            {"number": 11, "name": "Mark Walker", "position": "Forward"}
+                        ]
+                    },
+                    "team_b": {
+                        "team_name": "Team B",
+                        "players": [
+                            {"number": 1, "name": "John Doe", "position": "Goalkeeper"},
+                            {"number": 2, "name": "James Smith", "position": "Defender"},
+                            {"number": 3, "name": "Michael Brown", "position": "Defender"},
+                            {"number": 4, "name": "Robert Johnson", "position": "Defender"},
+                            {"number": 5, "name": "David Wilson", "position": "Defender"},
+                            {"number": 6, "name": "Thomas Jones", "position": "Midfielder"},
+                            {"number": 7, "name": "Christopher Taylor", "position": "Midfielder"},
+                            {"number": 8, "name": "Joseph Anderson", "position": "Midfielder"},
+                            {"number": 9, "name": "Daniel Martinez", "position": "Forward"},
+                            {"number": 10, "name": "Paul Robinson", "position": "Forward"},
+                            {"number": 11, "name": "Mark Wright", "position": "Forward"}
+                        ]
+                    }
                 }
         except Exception as e:
             logging.error(f"Error loading default team sheet: {str(e)}")

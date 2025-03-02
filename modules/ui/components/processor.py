@@ -1,13 +1,9 @@
 from PyQt6.QtCore import QThread, pyqtSignal
 import cv2
-import numpy as np
-import os
-import time
 import tempfile
 import logging
-import subprocess
 import json
-from pathlib import Path
+import time
 
 class VideoProcessor(QThread):
     """Thread for processing football videos without blocking the UI"""
@@ -26,44 +22,15 @@ class VideoProcessor(QThread):
         try:
             # Create a temporary directory for processing
             with tempfile.TemporaryDirectory() as temp_dir:
-                self.progress_updated.emit(5, "Preparing video for processing...")
-                
-                # Create a temp file for the team data
-                team_data_path = os.path.join(temp_dir, "team_data.json")
-                with open(team_data_path, 'w') as f:
-                    json.dump(self.team_data, f, indent=4)
-                
-                # Generate a temporary output path
-                basename = os.path.basename(self.input_path)
-                output_filename = f"processed_{basename}"
-                self.output_path = os.path.join(temp_dir, output_filename)
-                
-                # In a real application, you would call an external process
-                # or API service to process the video. For this demo, we'll
-                # simulate the processing.
-                self.simulate_processing(self.input_path, self.output_path, team_data_path)
-                
-                # Make a more permanent copy of the output
-                final_output_dir = os.path.join(Path.home(), "football_commentary_output")
-                os.makedirs(final_output_dir, exist_ok=True)
-                
-                final_output_path = os.path.join(final_output_dir, output_filename)
-                self.progress_updated.emit(95, "Finalizing output video...")
-                
-                # Copy the temporary output to the final location
-                import shutil
-                shutil.copy2(self.output_path, final_output_path)
-                self.output_path = final_output_path
-                
-                self.progress_updated.emit(100, "Processing complete!")
+                self.output_path = f"{temp_dir}/processed_video.mp4"
+                self.simulate_processing(self.input_path, self.output_path, self.team_data)
                 self.processing_complete.emit(self.output_path, True)
-                
         except Exception as e:
             logging.error(f"Processing error: {str(e)}")
             self.progress_updated.emit(0, f"Error: {str(e)}")
             self.processing_complete.emit("", False)
     
-    def simulate_processing(self, input_path, output_path, team_data_path):
+    def simulate_processing(self, input_path, output_path, team_data):
         """
         Simulate video processing steps.
         In a real application, this would involve calling external tools
@@ -73,7 +40,7 @@ class VideoProcessor(QThread):
             # Load the video
             cap = cv2.VideoCapture(input_path)
             if not cap.isOpened():
-                raise Exception("Could not open video file")
+                raise Exception("Failed to open video file")
             
             # Get video properties
             width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -86,59 +53,35 @@ class VideoProcessor(QThread):
             out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
             
             # Load team data
-            with open(team_data_path, 'r') as f:
-                team_data = json.load(f)
+            team_a_players = team_data["team_a"]["players"]
+            team_b_players = team_data["team_b"]["players"]
             
-            # Create a dictionary for quick player lookup
-            player_lookup = {p["number"]: p for p in team_data["players"]}
-            
-            # Process frames
-            current_frame = 0
-            
-            # In a real implementation, this is where you would:
-            # 1. Send frames to player detection/tracking model
-            # 2. Identify players using jersey numbers
-            # 3. Track ball movement
-            # 4. Identify key events (passes, shots, goals)
-            # 5. Generate commentary
-            # 6. Overlay graphics and text
-            
-            while True:
-                # Report progress
-                if current_frame % 30 == 0:  # Update progress every 30 frames
-                    progress = min(95, int(current_frame / frame_count * 90) + 5)
-                    self.progress_updated.emit(progress, f"Processing frame {current_frame}/{frame_count}")
-                
-                # Check if processing was canceled
+            # Process each frame
+            for frame_number in range(frame_count):
                 if self.canceled:
-                    cap.release()
-                    out.release()
-                    return
+                    break
                 
-                # Read the next frame
                 ret, frame = cap.read()
                 if not ret:
                     break
                 
-                # Simulate processing the frame
-                processed_frame = self.process_frame(frame, current_frame, fps, player_lookup)
+                # Process the frame (simulated)
+                processed_frame = self.process_frame(frame, frame_number, fps, team_a_players, team_b_players)
                 
-                # Write the processed frame
+                # Write the processed frame to the output video
                 out.write(processed_frame)
                 
-                current_frame += 1
+                # Update progress
+                progress = int((frame_number / frame_count) * 100)
+                self.progress_updated.emit(progress, f"Processing frame {frame_number + 1}/{frame_count}")
             
-            # Clean up
             cap.release()
             out.release()
-            
-            self.progress_updated.emit(95, "Processing complete, finalizing video...")
-            
         except Exception as e:
-            logging.error(f"Video processing error: {str(e)}")
+            logging.error(f"Processing error: {str(e)}")
             raise
     
-    def process_frame(self, frame, frame_number, fps, player_lookup):
+    def process_frame(self, frame, frame_number, fps, team_a_players, team_b_players):
         """
         Process an individual frame (simulated)
         
@@ -153,7 +96,7 @@ class VideoProcessor(QThread):
         
         # Simulate some processing delay
         if frame_number % 30 == 0:
-            time.sleep(0.01)  # Small delay to simulate processing
+            time.sleep(0.01)
         
         # Add a scoreboard overlay (example)
         timestamp = frame_number / fps
@@ -170,13 +113,11 @@ class VideoProcessor(QThread):
         
         # Simulated player identification (every 5 seconds)
         if frame_number % int(fps * 5) == 0:
-            player_num = (frame_number // int(fps * 5)) % 11 + 1
-            if player_num in player_lookup:
-                player = player_lookup[player_num]
-                cv2.putText(processed, f"#{player['number']} {player['name']}", 
-                           (50, height - 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-                cv2.putText(processed, f"{player['position']}", 
-                           (50, height - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            # Example: Highlight a player from Team A
+            if team_a_players:
+                player = team_a_players[frame_number % len(team_a_players)]
+                cv2.putText(processed, f"Player: {player['name']}", 
+                           (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         
         return processed
     

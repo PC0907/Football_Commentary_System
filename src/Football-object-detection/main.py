@@ -469,6 +469,6 @@ if __name__ == "__main__":
         "7": (22, 11, 15)      # Staff
     }
     
-    model = YOLO("./weights/last.pt")
+    model = YOLO("/kaggle/working/Football-Object-Detection/weights/last.pt")
     video_path = sys.argv[1]
     annotate_video(video_path, model)

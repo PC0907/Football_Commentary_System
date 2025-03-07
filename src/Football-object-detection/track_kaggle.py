@@ -32,32 +32,17 @@ def get_grass_color(img):
     return grass_color[:3]
 
 def get_players_boxes(result):
-  """
-  Finds the images of the players in the frame and their bounding boxes.
-
-  Args:
-      result: ultralytics.engine.results.Results object that contains all the
-      result of running the object detection algroithm on the frame
-
-  Returns:
-      players_imgs
-          List of np.array objects that contain the BGR values of the cropped
-          parts of the image that contains players.
-      players_boxes
-          List of ultralytics.engine.results.Boxes objects that contain various
-          information about the bounding boxes of the players found in the image.
-  """
-  players_imgs = []
-  players_boxes = []
-  for box in result.boxes:
-    label = int(box.cls.numpy()[0])
-    if label == 0:
-      x1, y1, x2, y2 = map(int, box.xyxy[0].numpy())
-      player_img = result.orig_img[y1: y2, x1: x2]
-      players_imgs.append(player_img)
-      players_boxes.append(box)
-  return players_imgs, players_boxes
-
+    players_imgs = []
+    players_boxes = []
+    for box in result.boxes:
+        label = int(box.cls.cpu().numpy()[0])  # Add .cpu() here
+        if label == 0:
+            x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())  # Add .cpu() here
+            player_img = result.orig_img[y1:y2, x1:x2]
+            players_imgs.append(player_img)
+            players_boxes.append(box)
+    return players_imgs, players_boxes
+	
 def get_kits_colors(players, grass_hsv=None, frame=None):
   """
   Finds the kit colors of all the players in the current frame
@@ -101,22 +86,9 @@ def get_kits_colors(players, grass_hsv=None, frame=None):
   return kits_colors
 
 def get_kits_classifier(kits_colors):
-  """
-  Creates a K-Means classifier that can classify the kits accroding to their BGR
-  values into 2 different clusters each of them represents one of the teams
-
-  Args:
-      kits_colors: List of np.array objects that contain the BGR values of
-      the colors of the kits of the players found in the current frame.
-
-  Returns:
-      kits_kmeans
-          sklearn.cluster.KMeans object that can classify the players kits into
-          2 teams according to their color..
-  """
-  kits_kmeans = KMeans(n_clusters=2)
-  kits_kmeans.fit(kits_colors);
-  return kits_kmeans
+    kits_kmeans = KMeans(n_clusters=2, n_init='auto')  # Add n_init here
+    kits_kmeans.fit(kits_colors)
+    return kits_kmeans
 
 def classify_kits(kits_classifer, kits_colors):
   """
@@ -159,7 +131,8 @@ def get_left_team_label(players_boxes, kits_colors, kits_clf):
   team_1 = []
 
   for i in range(len(players_boxes)):
-    x1, y1, x2, y2 = map(int, players_boxes[i].xyxy[0].numpy())
+    #x1, y1, x2, y2 = map(int, players_boxes[i].xyxy[0].numpy())
+    x1, y1, x2, y2 = map(int, players_boxes[i].xyxy[0].cpu().numpy())
 
     team = classify_kits(kits_clf, [kits_colors[i]]).item()
     if team==0:
@@ -323,7 +296,8 @@ def annotate_video(video_path, model):
 
             for box in result.boxes:
                 orig_label = int(box.cls.numpy()[0])
-                x1, y1, x2, y2 = map(int, box.xyxy[0].numpy())
+                #x1, y1, x2, y2 = map(int, box.xyxy[0].numpy())
+		x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
                 text = ""
                 label = orig_label
 
@@ -335,7 +309,8 @@ def annotate_video(video_path, model):
                     label = 0 if team == left_team_label else 1
                     
                     # Get tracking ID
-                    track_id = int(box.id.item()) if box.id is not None else -1
+                    # In the annotation loop:
+		    track_id = int(box.id.cpu().item()) if box.id is not None else -1  # Add .cpu() here
                     text = f"{labels[label]} {track_id}"
 
                 # Goalkeeper handling

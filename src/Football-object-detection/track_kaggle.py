@@ -148,48 +148,77 @@ def get_left_team_label(players_boxes, kits_colors, kits_clf):
     return left_team_label
 
 def annotate_video(video_path, model):
-    cap = cv2.VideoCapture(video_path)
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    try:
+        import os
+        import cv2
+        import numpy as np
+        from sklearn.cluster import KMeans
 
-    video_name = video_path.split('/')[-1]
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    output_video = cv2.VideoWriter(f'./output/{video_name.split(".")[0]}_out.mp4',
-                                  fourcc, 30.0, (width, height))
+        # Create output directory if it doesn't exist
+        os.makedirs('./output', exist_ok=True)
 
-    kits_clf = None
-    left_team_label = 0
-    grass_hsv = None
+        # Debug paths
+        print(f"[DEBUG] Input video path: {os.path.abspath(video_path)}")
+        print(f"[DEBUG] Output directory: {os.path.abspath('./output')}")
 
-    while cap.isOpened():
-        success, frame = cap.read()
-        current_frame_idx = cap.get(cv2.CAP_PROP_POS_FRAMES)
+        # Initialize video capture
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            raise ValueError(f"Could not open video file: {video_path}")
 
-        if success:
-            annotated_frame = cv2.resize(frame, (width, height))
-            
-            # Enable tracking here with persist=True
+        # Get video properties
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        # Create output path
+        video_name = os.path.splitext(os.path.basename(video_path))[0]
+        output_path = os.path.abspath(f'./output/{video_name}_out.mp4')
+        print(f"[DEBUG] Output will be saved to: {output_path}")
+
+        # Initialize video writer
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        output_video = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+        if not output_video.isOpened():
+            raise RuntimeError("Failed to initialize video writer")
+
+        # Tracking variables
+        kits_clf = None
+        left_team_label = 0
+        grass_hsv = None
+        frame_count = 0
+
+        while True:
+            success, frame = cap.read()
+            if not success:
+                break
+
+            # Process frame with tracking
             results = model.track(
-                annotated_frame,
+                frame,
                 conf=0.5,
-                verbose=False,
-                persist=True,  # Maintain ID persistence between frames
-                tracker="botsort.yaml"  # Use BoT-SORT tracker
+                persist=True,
+                tracker="botsort.yaml",
+                verbose=False
             )
             result = results[0]
 
             # Get players and kits
             players_imgs, players_boxes = get_players_boxes(result)
-            kits_colors = get_kits_colors(players_imgs, grass_hsv, annotated_frame)
+            kits_colors = get_kits_colors(players_imgs, grass_hsv, frame)
 
             # Initialize on first frame
-            if current_frame_idx == 1:
+            if frame_count == 0:
                 kits_clf = get_kits_classifier(kits_colors)
                 left_team_label = get_left_team_label(players_boxes, kits_colors, kits_clf)
-                grass_color = get_grass_color(result.orig_img)
+                grass_color = get_grass_color(frame)
                 grass_hsv = cv2.cvtColor(np.uint8([[list(grass_color)]]), cv2.COLOR_BGR2HSV)
 
+            annotated_frame = frame.copy()
+
             for box in result.boxes:
+                # Move tensor to CPU before conversion
                 orig_label = int(box.cls.cpu().numpy()[0])
                 x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
                 text = ""
@@ -198,7 +227,7 @@ def annotate_video(video_path, model):
                 # Player detection
                 if orig_label == 0:
                     # Get team classification
-                    kit_color = get_kits_colors([result.orig_img[y1:y2, x1:x2]], grass_hsv)
+                    kit_color = get_kits_colors([frame[y1:y2, x1:x2]], grass_hsv)
                     team = classify_kits(kits_clf, kit_color)
                     label = 0 if team == left_team_label else 1
                     
@@ -208,7 +237,7 @@ def annotate_video(video_path, model):
 
                 # Goalkeeper handling
                 elif orig_label == 1:
-                    label = 2 if x1 < 0.5 * width else 3
+                    label = 2 if x1 < width // 2 else 3
                     text = labels[label]
 
                 # Other objects
@@ -216,19 +245,39 @@ def annotate_video(video_path, model):
                     label = orig_label + 2
                     text = labels[label]
 
-                # Draw bounding box and text
+                # Draw annotations
                 cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), box_colors[str(label)], 2)
-                cv2.putText(annotated_frame, text, (x1-30, y1-10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, box_colors[str(label)], 2)
+                cv2.putText(annotated_frame, text, (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, box_colors[str(label)], 2)
 
+            # Write frame
             output_video.write(annotated_frame)
+            frame_count += 1
+            
+            # Progress update every 5%
+            if frame_count % (total_frames // 20) == 0:
+                progress = (frame_count / total_frames) * 100
+                print(f"Processing: {progress:.1f}% complete ({frame_count}/{total_frames} frames)")
+
+    except Exception as e:
+        print(f"ERROR: {str(e)}")
+        raise
+    finally:
+        # Cleanup resources
+        if 'cap' in locals():
+            cap.release()
+        if 'output_video' in locals():
+            output_video.release()
+        cv2.destroyAllWindows()
+
+        # Final verification
+        if os.path.exists(output_path):
+            file_size = os.path.getsize(output_path) // (1024 * 1024)
+            print(f"\nSuccess! Output video created at: {output_path}")
+            print(f"Final file size: {file_size} MB")
         else:
-            break
-
-    cv2.destroyAllWindows()
-    output_video.release()
-    cap.release()
-
+            print("\nFailed to create output video")
+            
 if __name__ == "__main__":
     labels = ["Player-L", "Player-R", "GK-L", "GK-R", "Ball", "Main Ref", "Side Ref", "Staff"]
     box_colors = {

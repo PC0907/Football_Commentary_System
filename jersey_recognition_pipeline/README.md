@@ -23,12 +23,11 @@ The pipeline is designed to automate the process of recognizing jersey numbers i
 
 ## Pipeline Structure
 ```
-football-analysis-pipeline/
+Jersey-Recognition-Pipeline/
 │
 ├── README.md                   # Project overview and instructions
 ├── LICENSE                     # License information
-├── requirements.txt            # Python dependencies
-├── .gitignore                  # Files and directories to ignore
+├── requirements.txt            # Python dependencies                  
 │
 ├── src/                        # Source code
 │   ├── main.py                 # Entry point for running the full pipeline
@@ -43,7 +42,6 @@ football-analysis-pipeline/
 ├── data/                       # Data for processing
 │   ├── raw/                    # Raw input videos
 │   ├── processed/              # Processed outputs (player crops, detected events)
-│   └── annotations/            # Annotations for evaluation (optional)
 │
 ├── models/                     # Pre-trained models
 │   ├── detection/              # Object detection models
@@ -59,5 +57,4 @@ football-analysis-pipeline/
 └── docs/                       # Documentation
     ├── architecture.md         # Project architecture details
     ├── pipeline.md             # Explanation of the processing pipeline
-    └── api_reference.md        # API documentation for modules
 ```

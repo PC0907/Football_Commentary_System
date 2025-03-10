@@ -18,8 +18,11 @@ The pipeline is designed to automate the process of recognizing jersey numbers i
 3. **Legibility Classification**: Filter out player crops where the jersey number is not clearly visible.
 4. **Torso Extraction**: Use VitPose to extract the torso region for better jersey recognition.
 
+
+
+
 ## Pipeline Structure
-'''
+```
 football-analysis-pipeline/
 │
 ├── README.md                   # Project overview and instructions
@@ -57,4 +60,4 @@ football-analysis-pipeline/
     ├── architecture.md         # Project architecture details
     ├── pipeline.md             # Explanation of the processing pipeline
     └── api_reference.md        # API documentation for modules
-'''
+```

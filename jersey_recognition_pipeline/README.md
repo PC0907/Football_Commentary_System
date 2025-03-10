@@ -21,3 +21,4 @@ The pipeline is designed to automate the process of recognizing jersey numbers i
 4. **Torso Extraction**: Use VitPose to extract the torso region for better jersey recognition.
 
 ## Pipeline Structure
+/football_analysis_pipeline │── main.py (or main.ipynb) # Runs the entire pipeline │── requirements.txt # Dependencies │── object_detection.py # Runs object detection on video │── player_crops.py # Extracts player crops from detected video │── legibility_classifier.py # Filters crops with illegible jersey numbers │── torso_extraction.py # Extracts the torso using VitPose │── utils.py # Any helper functions │── configs/ # Configuration files (optional) │── models/ # Pre-trained models (optional) │── data/ # Input videos, output images, etc. └── results/ # Processed outputs

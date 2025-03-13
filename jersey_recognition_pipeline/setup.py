@@ -14,7 +14,7 @@ MODEL_DIR.mkdir(parents=True, exist_ok=True)
 DETECTION_DIR = MODEL_DIR / "detection"
 DETECTION_DIR.mkdir(exist_ok=True)
 
-yolo_url = "https://your-yolo-weights-url/last.pt"  # Replace with your actual URL
+yolo_url = "https://drive.google.com/file/d/1gDF6MZhCc6TD2EnOLezpIfT7_-WCd3oe/view?usp=sharing"  # Replace with your actual URL
 yolo_path = DETECTION_DIR / "last.pt"
 
 if not yolo_path.exists():

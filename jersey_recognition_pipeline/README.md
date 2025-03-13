@@ -32,8 +32,9 @@ Jersey-Recognition-Pipeline/
 │   ├── object_detection/       # Object detection on video
 │   ├── player_crops/           # Extracting player crops from detected video
 │   ├── legibility_classifier/  # Filtering illegible jersey number crops
-│   ├── torso_extraction/       # Extracting torso regions using VitPose
-│   └── visualization/          # Visualization utilities (optional)
+│   ├── video_processor/
+|   ├── torso_extraction/        # Extracting torso regions using VitPose
+│   
 │
 ├── utils/
 │   ├── __init__.py

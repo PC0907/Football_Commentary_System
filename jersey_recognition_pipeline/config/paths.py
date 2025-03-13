@@ -1,16 +1,18 @@
+from pathlib import Path
+
 class PathConfig:
-    # Directory paths
-    CROP_DIR = "./outputs/crops"
-    LEGIBLE_CROPS_DIR = "./outputs/legible_crops"
-    KEYPOINTS_DIR = "./outputs/keypoints"
-    TORSO_CROPS_DIR = "./outputs/torso_crops"
-    PROCESSED_TORSO_DIR = "./outputs/processed_torso"
+    # Base directories
+    PROJECT_ROOT = Path(__file__).parent.parent
+    MODELS_DIR = PROJECT_ROOT / "models"
     
-    # Model weights
-    DETECTION_WEIGHTS = "./weights/last.pt"
-    CLASSIFIER_WEIGHTS = "./models/legibility_resnet34_soccer_20240215.pth"
-    POSE_WEIGHTS = "./ViTPose/checkpoints/vitpose-h.pth"
-    POSE_CONFIG = "rtmpose-l_8xb256-420e_coco-256x192.py"
-    
-    # Device configuration
-    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    # Model paths
+    DETECTION_WEIGHTS = MODELS_DIR / "detection/last.pt"
+    CLASSIFIER_WEIGHTS = MODELS_DIR / "legibility/legibility_resnet34_soccer_20240215.pth"
+    POSE_WEIGHTS = MODELS_DIR / "vitpose/vitpose-h.pth"
+    POSE_CONFIG = MODELS_DIR / "vitpose/configs/rtmpose-l_8xb256-420e_coco-256x192.py"
+
+    # Output directories (created automatically)
+    OUTPUT_DIR = PROJECT_ROOT / "results"
+    CROP_DIR = OUTPUT_DIR / "extracted_crops"
+    LEGIBLE_CROPS_DIR = OUTPUT_DIR / "filtered_crops"
+    TORSO_DIR = OUTPUT_DIR / "torso_regions"

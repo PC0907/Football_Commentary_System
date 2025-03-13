@@ -1,15 +1,20 @@
-# Core dependencies
-ultralytics==8.2.27  # YOLOv8
-torch==2.4.0+cu121  # Official PyTorch build
-torchvision==0.16.0+cu121
-numpy==1.26.4
-opencv-python==4.9.0.80
-scikit-learn==1.4.2
+# requirements.txt
 
-# MMCV with CUDA 12.1 and Torch 2.4 support
---extra-index-url https://download.openmmlab.com/mmcv/dist/cu121/torch2.4/index.html
+# Core packages
+ultralytics
+numpy
+opencv-python
+scikit-learn
+
+# PyTorch with CUDA 12.1 (official binaries)
+torch==2.3.0+cu121
+torchvision==0.18.0+cu121
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+# MMCV with CUDA 12.1 compatibility
+--extra-index-url https://download.openmmlab.com/mmcv/dist/cu121/torch2.3.0/index.html
 mmcv==2.1.0
 
-# MMPose/MMDetection
-mmdet==3.3.0  # Compatible with MMCV 2.x
-mmpose==1.2.0  # Compatible with MMCV 2.x
+# MMDetection/MMPose
+mmdet==3.3.0
+mmpose==1.2.0

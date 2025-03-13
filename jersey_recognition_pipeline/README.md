@@ -18,8 +18,22 @@ The pipeline is designed to automate the process of recognizing jersey numbers i
 3. **Legibility Classification**: Filter out player crops where the jersey number is not clearly visible.
 4. **Torso Extraction**: Use VitPose to extract the torso region for better jersey recognition.
 
-
-
+### Installation and Setup
+```sh
+pip install -r requirements.txt
+python setup.py
+```
+Example Run Script:
+```sh
+python main.py --input test_video.mp4 --output my_results/
+```
+Expected Output Structure:
+```
+my_results/
+├── crops/
+├── legible_crops/
+└── torso_crops/
+```
 
 ## Pipeline Structure
 ```

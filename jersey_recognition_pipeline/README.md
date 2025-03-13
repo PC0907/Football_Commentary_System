@@ -42,13 +42,17 @@ Jersey-Recognition-Pipeline/
 ├── README.md                   # Project overview and instructions
 ├── LICENSE                     # License information              
 │
-├── src/                        # Source code                 
-│   ├── object_detection/       # Object detection on video
-│   ├── player_crops/           # Extracting player crops from detected video
-│   ├── legibility_classifier/  # Filtering illegible jersey number crops
-│   ├── video_processor/
-|   ├── torso_extraction/       # Extracting torso regions using VitPose
-|   ├── pipeline/        
+├── src/
+│   ├── pipeline/               # Moved from root
+│   │   ├── __init__.py
+│   │   ├── football_pipeline.py
+│   │   ├── object_detector.py
+│   │   ├── crop_processor.py
+│   │   ├── classifier.py
+│   │   └── pose_estimator.py
+│   └── video_processor.py      # New location
+├── configs/
+│   └── paths.py                # Updated content below
 │   
 │
 ├── utils/
@@ -56,10 +60,6 @@ Jersey-Recognition-Pipeline/
 │   ├── visualization.py        # Pose visualization
 │   └── file_utils.py
 |
-├── configs/
-│   ├── __init__.py
-│   ├── paths.py
-│   └── params.py
 |
 ├── outputs/
 │   ├── keypoints/              # Keypoint visualizations

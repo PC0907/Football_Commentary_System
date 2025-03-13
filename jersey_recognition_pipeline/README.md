@@ -47,12 +47,12 @@ Jersey-Recognition-Pipeline/
 │   ├── player_crops/           # Extracting player crops from detected video
 │   ├── legibility_classifier/  # Filtering illegible jersey number crops
 │   ├── video_processor/
-|   ├── torso_extraction/        # Extracting torso regions using VitPose
+|   ├── torso_extraction/       # Extracting torso regions using VitPose
+|   ├── pipeline/        
 │   
 │
 ├── utils/
 │   ├── __init__.py
-│   ├── preprocessing.py
 │   ├── visualization.py        # Pose visualization
 │   └── file_utils.py
 |
@@ -78,6 +78,8 @@ Jersey-Recognition-Pipeline/
 │   └── torso_regions/          # Extracted torso regions
 │
 └── requirements.txt
+└── setup.py
+└── verify_installation.py
 └── main.py
 
 ```

@@ -49,7 +49,7 @@ Jersey-Recognition-Pipeline/
 │   │   ├── object_detector.py
 │   │   ├── crop_processor.py
 │   │   ├── classifier.py
-│   │   └── pose_estimator.py
+│   │   └── torso_extraction.py
 │   └── video_processor.py      # New location
 ├── configs/
 │   └── paths.py                # Updated content below

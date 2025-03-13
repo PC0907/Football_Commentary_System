@@ -56,9 +56,6 @@ Jersey-Recognition-Pipeline/
 │   ├── detection/              # Object detection models
 │   ├── legibility/             # Legibility classifier models
 │   └── vitpose/                # VitPose model files
-│
-├── weights/
-├── models/
 |
 ├── results/                    # Outputs generated from the pipeline
 │   ├── detected_videos/        # Videos with object detection results

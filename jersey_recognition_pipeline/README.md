@@ -26,35 +26,46 @@ The pipeline is designed to automate the process of recognizing jersey numbers i
 Jersey-Recognition-Pipeline/
 │
 ├── README.md                   # Project overview and instructions
-├── LICENSE                     # License information
-├── requirements.txt            # Python dependencies                  
+├── LICENSE                     # License information              
 │
-├── src/                        # Source code
-│   ├── main.py                 # Entry point for running the full pipeline
-│   ├── config/                 # Configuration files
-│   ├── utils/                  # Utility scripts (e.g., helper functions, logging)
+├── src/                        # Source code                 
 │   ├── object_detection/       # Object detection on video
 │   ├── player_crops/           # Extracting player crops from detected video
 │   ├── legibility_classifier/  # Filtering illegible jersey number crops
 │   ├── torso_extraction/       # Extracting torso regions using VitPose
 │   └── visualization/          # Visualization utilities (optional)
 │
-├── data/                       # Data for processing
-│   ├── raw/                    # Raw input videos
-│   ├── processed/              # Processed outputs (player crops, detected events)
+├── utils/
+│   ├── __init__.py
+│   ├── preprocessing.py
+│   ├── visualization.py        # Pose visualization
+│   └── file_utils.py
+|
+├── configs/
+│   ├── __init__.py
+│   ├── paths.py
+│   └── params.py
+|
+├── outputs/
+│   ├── keypoints/              # Keypoint visualizations
+│   ├── torso_crops/            # Extracted torso crops
+│   └── processed_torso/        # Enhanced torso crops
 │
 ├── models/                     # Pre-trained models
 │   ├── detection/              # Object detection models
 │   ├── legibility/             # Legibility classifier models
 │   └── vitpose/                # VitPose model files
 │
+├── weights/
+├── models/
+|
 ├── results/                    # Outputs generated from the pipeline
 │   ├── detected_videos/        # Videos with object detection results
 │   ├── extracted_crops/        # Player crops extracted from videos
 │   ├── filtered_crops/         # Crops after legibility filtering
 │   └── torso_regions/          # Extracted torso regions
 │
-└── docs/                       # Documentation
-    ├── architecture.md         # Project architecture details
-    ├── pipeline.md             # Explanation of the processing pipeline
+└── requirements.txt
+└── main.py
+
 ```

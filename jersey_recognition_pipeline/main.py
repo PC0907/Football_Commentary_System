@@ -2,7 +2,7 @@
 import argparse
 from pathlib import Path
 from configs.paths import PathConfig
-from src.pipeline.football_pipeline import FootballAnalysisPipeline
+from src.pipeline import FootballAnalysisPipeline
 from utils.file_utils import create_directory
 
 def main():

@@ -1,5 +1,6 @@
 
 """ a modified version of CRNN torch repository https://github.com/bgshih/crnn/blob/master/tool/create_dataset.py """
+""" ref: https://github.com/chibohe/CdistNet-pytorch/blob/main/tool/create_lmdb_dataset.py """
 
 import fire
 import os

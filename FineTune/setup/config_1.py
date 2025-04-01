@@ -4,16 +4,21 @@ import lmdb
 import cv2
 import numpy as np
 import pandas as pd
+import glob
 
 def checkImageIsValid(imageBin):
     if imageBin is None:
         return False
-    imageBuf = np.frombuffer(imageBin, dtype=np.uint8)
-    img = cv2.imdecode(imageBuf, cv2.IMREAD_GRAYSCALE)
-    imgH, imgW = img.shape[0], img.shape[1]
-    if imgH * imgW == 0:
+    try:
+        imageBuf = np.frombuffer(imageBin, dtype=np.uint8)
+        img = cv2.imdecode(imageBuf, cv2.IMREAD_GRAYSCALE)
+        if img is None:
+            return False
+        imgH, imgW = img.shape[0], img.shape[1]
+        return imgH * imgW > 0
+    except Exception as e:
+        print(f"Image validation error: {e}")
         return False
-    return True
 
 def writeCache(env, cache):
     with env.begin(write=True) as txn:
@@ -22,78 +27,82 @@ def writeCache(env, cache):
 
 def createDataset(inputPath, csvFile, outputPath, imageCol='image_name', labelCol='label', checkValid=True):
     """
-    Create LMDB dataset for training and evaluation.
-    ARGS:
-        inputPath  : input folder path where starts imagePath
-        outputPath : LMDB output path
-        csvFile    : CSV file with image names and labels
-        imageCol   : Name of the column containing image filenames
-        labelCol   : Name of the column containing labels
-        checkValid : if true, check the validity of every image
+    Updated version that:
+    1. Handles augmented filenames (_augX suffixes)
+    2. Searches nested directories recursively
+    3. Matches partial filenames from CSV
     """
     os.makedirs(outputPath, exist_ok=True)
     env = lmdb.open(outputPath, map_size=1099511627776)
     cache = {}
     cnt = 1
     
-    # Read CSV file
+    # Read CSV and prepare image mapping
     df = pd.read_csv(csvFile)
     nSamples = len(df)
     
-    # Check if we need to look in a nested output_images directory
-    nested_dir = os.path.join(inputPath, 'output_images')
-    use_nested = os.path.isdir(nested_dir)
+    # Build image path cache (filename -> full paths)
+    search_pattern = os.path.join(inputPath, "**", "*.jpg")
+    all_image_paths = glob.glob(search_pattern, recursive=True)
+    image_map = {}
+    for path in all_image_paths:
+        filename = os.path.basename(path)
+        if filename not in image_map:
+            image_map[filename] = []
+        image_map[filename].append(path)
     
+    print(f"Found {len(all_image_paths)} images in {inputPath} (including subdirectories)")
+    
+    # Process CSV entries
     for i, row in df.iterrows():
-        img_name = row[imageCol]
-        label = str(row[labelCol])
+        base_name = row[imageCol].strip()
+        label = str(row[labelCol]).strip()
         
-        # Try multiple possible paths
-        potential_paths = [
-            os.path.join(inputPath, img_name),  # Direct path
-            os.path.join(inputPath, 'output_images', img_name)  # Nested path
-        ]
+        # Remove .jpg extension if present in CSV
+        if base_name.lower().endswith('.jpg'):
+            base_name = base_name[:-4]
         
-        imagePath = None
-        for path in potential_paths:
-            if os.path.exists(path):
-                imagePath = path
-                break
-                
-        if imagePath is None:
-            print(f'Could not find image {img_name} in any of the expected locations')
+        # Find matching images (handles _augX versions)
+        matches = []
+        for img_file in image_map.keys():
+            if img_file.startswith(base_name):
+                matches.extend(image_map[img_file])
+        
+        if not matches:
+            print(f'No matches found for {base_name}')
             continue
             
+        # Use first match (or implement your selection logic)
+        imagePath = matches[0]
+        
         with open(imagePath, 'rb') as f:
             imageBin = f.read()
             
         if checkValid:
-            try:
-                if not checkImageIsValid(imageBin):
-                    print('%s is not a valid image' % imagePath)
-                    continue
-            except Exception as e:
-                print(f'Error occurred with image {imagePath}: {e}')
-                with open(os.path.join(outputPath, 'error_image_log.txt'), 'a') as log:
-                    log.write(f'Error with image {imagePath}: {e}\n')
+            if not checkImageIsValid(imageBin):
+                print(f'Skipping invalid image: {imagePath}')
                 continue
                 
-        imageKey = 'image-%09d'.encode() % cnt
-        labelKey = 'label-%09d'.encode() % cnt
+        # Store in LMDB
+        imageKey = f'image-{cnt:09d}'.encode()
+        labelKey = f'label-{cnt:09d}'.encode()
         cache[imageKey] = imageBin
         cache[labelKey] = label.encode()
         
+        # Write batch
         if cnt % 1000 == 0:
             writeCache(env, cache)
             cache = {}
-            print('Written %d / %d' % (cnt, nSamples))
+            print(f'Processed {cnt}/{nSamples} samples')
             
         cnt += 1
         
-    nSamples = cnt-1
+    # Final write
+    nSamples = cnt - 1
     cache['num-samples'.encode()] = str(nSamples).encode()
     writeCache(env, cache)
-    print('Created dataset with %d samples' % nSamples)
+    print(f'Successfully created dataset with {nSamples} samples')
+    print(f'Original CSV had {len(df)} entries, matched {nSamples} images')
 
 if __name__ == '__main__':
     fire.Fire(createDataset)

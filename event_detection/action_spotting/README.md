@@ -3,7 +3,7 @@
 ## Setup
 1) Clone the appropriate repository
    ```sh
-   git clone !git clone https://github.com/lRomul/ball-action-spotting
+   git clone https://github.com/lRomul/ball-action-spotting
    cd ball-action-spotting
 2) Install the required libraries
    ```sh

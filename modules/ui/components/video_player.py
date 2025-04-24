@@ -153,6 +153,10 @@ class VideoPlayer(QWidget):
         self.timer.stop()
         self.play_button.setIcon(QIcon("icons/play.png"))
     
+    def is_playing(self):
+        """Check if the video is currently playing"""
+        return self.playing
+    
     def update_frame(self):
         """Update the video frame during playback"""
         if self.cap is None or not self.cap.isOpened():

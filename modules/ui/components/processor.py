@@ -2,7 +2,6 @@ from PyQt6.QtCore import QThread, pyqtSignal
 import cv2
 import tempfile
 import logging
-import json
 import time
 
 class VideoProcessor(QThread):
@@ -77,6 +76,11 @@ class VideoProcessor(QThread):
             
             cap.release()
             out.release()
+            
+            # Verify that the output file was created
+            if not Path(output_path).exists():
+                raise Exception(f"Output video file not created: {output_path}")
+            
         except Exception as e:
             logging.error(f"Processing error: {str(e)}")
             raise

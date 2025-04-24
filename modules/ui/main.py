@@ -138,6 +138,14 @@ class FootballCommentaryApp(QMainWindow):
         self.export_btn.setEnabled(False)
         control_layout.addWidget(self.export_btn)
         
+        # Play/Pause button
+        self.play_pause_btn = QPushButton("Play/Pause")
+        self.play_pause_btn.setIcon(QIcon("icons/play_pause.png"))
+        self.play_pause_btn.setMinimumHeight(40)
+        self.play_pause_btn.clicked.connect(self.play_pause_videos)
+        self.play_pause_btn.setEnabled(False)
+        control_layout.addWidget(self.play_pause_btn)
+        
         main_layout.addWidget(control_panel)
         
         # Progress bar (initially hidden)
@@ -242,6 +250,9 @@ class FootballCommentaryApp(QMainWindow):
             if self.team_sheet_data:
                 self.process_btn.setEnabled(True)
                 
+            # Enable play/pause button
+            self.play_pause_btn.setEnabled(True)
+                
             logging.info(f"Video uploaded: {file_path}")
     
     def open_team_sheet(self):
@@ -309,6 +320,9 @@ class FootballCommentaryApp(QMainWindow):
             # Enable export button
             self.export_btn.setEnabled(True)
             
+            # Enable play/pause button
+            self.play_pause_btn.setEnabled(True)
+            
             logging.info(f"Video processing completed: {output_path}")
         else:
             self.status_label.setText("Error during processing")
@@ -340,6 +354,15 @@ class FootballCommentaryApp(QMainWindow):
                 QMessageBox.critical(self, "Export Error", f"Error exporting video: {str(e)}")
                 logging.error(f"Export error: {str(e)}")
     
+    def play_pause_videos(self):
+        """Play or pause both input and output videos"""
+        if self.input_video.is_playing() and self.output_video.is_playing():
+            self.input_video.pause()
+            self.output_video.pause()
+        else:
+            self.input_video.play()
+            self.output_video.play()
+    
     def load_default_team_sheet(self):
         """Load the default team sheet from a JSON file"""
         try:
@@ -352,37 +375,37 @@ class FootballCommentaryApp(QMainWindow):
                     return json.load(f)
             else:
                 # Return default team sheet if no saved one exists
-                return {
+                    return {
                     "team_a": {
-                        "team_name": "Team A",
+                        "team_name": "FC Barcelona",
                         "players": [
-                            {"number": 1, "name": "John Smith", "position": "Goalkeeper"},
-                            {"number": 2, "name": "James Brown", "position": "Defender"},
-                            {"number": 3, "name": "Michael Johnson", "position": "Defender"},
-                            {"number": 4, "name": "Robert Wilson", "position": "Defender"},
-                            {"number": 5, "name": "David Jones", "position": "Defender"},
-                            {"number": 6, "name": "Thomas Taylor", "position": "Midfielder"},
-                            {"number": 7, "name": "Christopher Anderson", "position": "Midfielder"},
-                            {"number": 8, "name": "Joseph Martinez", "position": "Midfielder"},
-                            {"number": 9, "name": "Daniel Robinson", "position": "Forward"},
-                            {"number": 10, "name": "Paul Wright", "position": "Forward"},
-                            {"number": 11, "name": "Mark Walker", "position": "Forward"}
+                            {"number": 1, "name": "Marc-André ter Stegen", "position": "Goalkeeper"},
+                            {"number": 2, "name": "Nélson Semedo", "position": "Defender"},
+                            {"number": 3, "name": "Gerard Piqué", "position": "Defender"},
+                            {"number": 4, "name": "Ivan Rakitić", "position": "Midfielder"},
+                            {"number": 5, "name": "Sergio Busquets", "position": "Midfielder"},
+                            {"number": 7, "name": "Philippe Coutinho", "position": "Forward"},
+                            {"number": 8, "name": "Arthur Melo", "position": "Midfielder"},
+                            {"number": 9, "name": "Luis Suárez", "position": "Forward"},
+                            {"number": 10, "name": "Lionel Messi", "position": "Forward"},
+                            {"number": 11, "name": "Ousmane Dembélé", "position": "Forward"},
+                            {"number": 18, "name": "Jordi Alba", "position": "Defender"}
                         ]
                     },
                     "team_b": {
-                        "team_name": "Team B",
+                        "team_name": "Real Madrid",
                         "players": [
-                            {"number": 1, "name": "John Doe", "position": "Goalkeeper"},
-                            {"number": 2, "name": "James Smith", "position": "Defender"},
-                            {"number": 3, "name": "Michael Brown", "position": "Defender"},
-                            {"number": 4, "name": "Robert Johnson", "position": "Defender"},
-                            {"number": 5, "name": "David Wilson", "position": "Defender"},
-                            {"number": 6, "name": "Thomas Jones", "position": "Midfielder"},
-                            {"number": 7, "name": "Christopher Taylor", "position": "Midfielder"},
-                            {"number": 8, "name": "Joseph Anderson", "position": "Midfielder"},
-                            {"number": 9, "name": "Daniel Martinez", "position": "Forward"},
-                            {"number": 10, "name": "Paul Robinson", "position": "Forward"},
-                            {"number": 11, "name": "Mark Wright", "position": "Forward"}
+                            {"number": 1, "name": "Keylor Navas", "position": "Goalkeeper"},
+                            {"number": 2, "name": "Dani Carvajal", "position": "Defender"},
+                            {"number": 3, "name": "Éder Militão", "position": "Defender"},
+                            {"number": 4, "name": "Sergio Ramos", "position": "Defender"},
+                            {"number": 5, "name": "Raphaël Varane", "position": "Defender"},
+                            {"number": 7, "name": "Eden Hazard", "position": "Forward"},
+                            {"number": 8, "name": "Toni Kroos", "position": "Midfielder"},
+                            {"number": 9, "name": "Karim Benzema", "position": "Forward"},
+                            {"number": 10, "name": "Luka Modrić", "position": "Midfielder"},
+                            {"number": 11, "name": "Gareth Bale", "position": "Forward"},
+                            {"number": 12, "name": "Marcelo", "position": "Defender"}
                         ]
                     }
                 }

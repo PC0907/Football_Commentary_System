@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
-import argparse
+import sys
+import os
 from pathlib import Path
+
+# Add the parseq directory to Python path
+parseq_path = '/kaggle/working/parseq'
+sys.path.append(parseq_path)
+
+# Now import from strhub
 from PIL import Image
 import torch
 from strhub.data.module import SceneTextDataModule
@@ -8,6 +15,7 @@ from strhub.models.utils import load_from_checkpoint, parse_model_args
 
 @torch.inference_mode()
 def main():
+    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('checkpoint', help="Model checkpoint (or 'pretrained=<model_id>')")
     parser.add_argument('--images', nargs='+', help='Images of jersey numbers to read')

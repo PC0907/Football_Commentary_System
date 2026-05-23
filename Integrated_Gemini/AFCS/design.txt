@@ -1,0 +1,113 @@
+Updated Design
+
+Here's the revised design, including the commentary_generation module:
+
+Core Modules:
+
+object_detection.py:
+
+Responsible only for object detection using YOLO.
+
+Input: Video frame.
+
+Output: List of detections (bounding boxes, class IDs, confidence scores).
+
+No kit color classification, team assignment, homography, or drawing logic.
+
+tracking.py:
+
+Handles object tracking (using ByteTrack or another algorithm).
+
+Input: Detections (from object_detection.py), (optionally) previous track information, and (optionally) jersey numbers associated with track IDs.
+
+Output: List of tracked objects with unique IDs, bounding boxes, class IDs, and (optionally) trajectories, and jersey numbers.
+
+Integrates bytetrack.py
+
+Stores detected jersey numbers with track IDs.
+
+Stops sending bounding box and player ID for a player once the jersey number is confidently detected and sends the jersey number with the track ID.
+
+Resumes sending bounding box and player ID if tracking is lost for a player.
+
+homography.py:
+
+Performs homography transformation.
+
+Contains all homography-related calculations (no external dependencies).
+
+Input: List of object positions in image coordinates, calibration data.
+
+Output: List of object positions in field coordinates, reprojection error, confidence.
+
+team_assignment.py:
+
+Handles team assignment based on player kit colors.
+
+Input: Player crops (images), frame (for grass color), (optionally) previous team assignments.
+
+Output: Mapping of player IDs to team labels.
+
+Uses get_grass_color, get_kits_colors, get_kits_classifier, and classify_kits (from the current object_detector.py)
+
+jersey_number_detection.py:
+
+Detects jersey numbers from player crops.
+
+Input: Player crop images, bounding boxes, and tracking IDs (for players whose jersey numbers are unknown).
+
+Output: Dictionary mapping tracking IDs to detected jersey numbers (with confidence scores).
+
+event_detection.py:
+
+Detects events in the video.
+
+Input: Frame data, tracking results, field positions.
+
+Output: List of detected events.
+
+commentary_generation.py:
+
+Generates commentary based on detected events and player statistics.
+
+Input:  List of detected events, player statistics (from player_stats.py).
+
+Output:  List of commentary strings with corresponding timestamps.
+
+rendering.py:
+
+Handles the drawing of detections, tracks, trajectories, event information, and commentary on the frame.
+
+Input: Frame, detections, tracking results, event data, player stats, and commentary.
+
+Output: Annotated video frame.
+
+player_stats.py:
+
+Remains responsible for tracking individual player statistics.
+
+team_sheet.py:
+
+Handles inputting and storing team sheet data.
+
+Pipeline Management:
+
+A central module (e.g., pipeline.py or processor.py) orchestrates the entire video processing pipeline.
+
+This module would:
+
+Initialize the core modules (object detection, tracking, homography, jersey number detection, event detection, commentary generation, etc.).
+
+Manage the data flow between modules.
+
+Use a threading mechanism to run the modules concurrently.
+
+Handle any necessary synchronization or data buffering.
+
+This module should contain minimal processing logic itself; it should primarily be a coordinator.
+
+Data Flow:
+
+Define a clear and consistent data structure for communication between modules.
+
+Use queues for asynchronous communication between worker threads.

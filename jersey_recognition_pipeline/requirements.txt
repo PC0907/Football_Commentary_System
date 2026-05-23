@@ -1,0 +1,20 @@
+# requirements.txt
+
+# Core packages
+ultralytics
+numpy
+opencv-python
+scikit-learn
+
+# PyTorch with CUDA 12.1 (official binaries)
+torch==2.3.0+cu121
+torchvision==0.18.0+cu121
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+# MMCV with CUDA 12.1 compatibility
+--extra-index-url https://download.openmmlab.com/mmcv/dist/cu121/torch2.3.0/index.html
+mmcv==2.1.0
+
+# MMDetection/MMPose
+mmdet==3.3.0
+mmpose==1.2.0

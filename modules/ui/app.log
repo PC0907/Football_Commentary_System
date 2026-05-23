@@ -59,3 +59,10 @@
 2025-04-24 20:48:02,998 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
 2025-04-25 15:48:25,105 - INFO - Application started
 2025-04-25 15:48:31,324 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
+2026-05-24 00:24:53,141 - INFO - Application started
+2026-05-24 00:25:07,252 - INFO - Video uploaded: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/Input_Videos/updated_video (1).mkv
+2026-05-24 00:25:08,890 - INFO - Video processing started
+2026-05-24 00:25:12,414 - ERROR - Tracker update failed: 'pixel_x'
+2026-05-24 00:25:12,415 - ERROR - Processing error: cannot unpack non-iterable NoneType object
+2026-05-24 00:25:14,105 - ERROR - Video processing failed
+2026-05-24 00:25:16,714 - INFO - Application closed

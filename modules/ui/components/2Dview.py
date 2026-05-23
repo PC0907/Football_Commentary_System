@@ -19,7 +19,7 @@ from ultralytics import YOLO
 
 from .bytetrack import BYTETracker
 from .homography import process_frame as homography_process_frame
-from ..utils.detection_utils import (
+from utils.detection_utils import (
     LABELS, TRACK_COLORS,
     get_grass_hsv, get_players_boxes,
     get_kits_colors, get_kits_classifier, classify_kits, get_left_team_label,

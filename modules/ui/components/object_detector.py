@@ -13,7 +13,7 @@ from tqdm import tqdm
 from ultralytics import YOLO
 
 from .bytetrack import BYTETracker
-from ..utils.detection_utils import (
+from utils.detection_utils import (
     LABELS, BOX_COLORS, TRACK_COLORS,
     get_grass_hsv, get_players_boxes,
     get_kits_colors, get_kits_classifier, classify_kits, get_left_team_label,

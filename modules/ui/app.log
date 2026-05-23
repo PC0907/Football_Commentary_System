@@ -49,3 +49,13 @@
 2025-03-08 12:33:22,421 - INFO - Video uploaded: /home/fawwaz/Downloads/vid_2.mkv
 2025-03-08 17:06:50,261 - INFO - Application started
 2025-03-08 17:06:52,587 - INFO - Application closed
+2025-04-24 20:04:01,362 - INFO - Application started
+2025-04-24 20:04:19,153 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
+2025-04-24 20:04:46,994 - INFO - Video processing started
+2025-04-24 20:04:48,672 - ERROR - Processing error: name 'Path' is not defined
+2025-04-24 20:04:48,673 - ERROR - Processing error: name 'Path' is not defined
+2025-04-24 20:04:50,131 - ERROR - Video processing failed
+2025-04-24 20:47:56,876 - INFO - Application started
+2025-04-24 20:48:02,998 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
+2025-04-25 15:48:25,105 - INFO - Application started
+2025-04-25 15:48:31,324 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4

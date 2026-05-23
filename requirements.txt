@@ -1,2 +1,32 @@
-#A requirements .txt file
-#Requirements to be added later on
+# Football Commentary System — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# ── Core CV / ML ──────────────────────────────────────────────────────────────
+ultralytics>=8.0.0          # YOLO v8/v11 object detection & keypoint detection
+opencv-python>=4.8.0        # Video I/O, drawing, image processing
+numpy>=1.24.0               # Array math
+torch>=2.0.0                # PyTorch backend for YOLO
+torchvision>=0.15.0
+
+# ── Tracking ──────────────────────────────────────────────────────────────────
+scipy>=1.10.0               # Hungarian algorithm (linear_sum_assignment) in ByteTrack
+
+# ── Team / kit classification ─────────────────────────────────────────────────
+scikit-learn>=1.3.0         # KMeans for kit-colour team assignment
+
+# ── UI ────────────────────────────────────────────────────────────────────────
+PyQt6>=6.5.0                # Desktop GUI
+
+# ── Commentary & audio ────────────────────────────────────────────────────────
+pyttsx3>=2.90               # Offline TTS for audio commentary
+pydub>=0.25.1               # Audio segment concatenation
+# ffmpeg must also be installed at system level (not via pip):
+#   Ubuntu/Debian: sudo apt install ffmpeg
+#   macOS:        brew install ffmpeg
+
+# ── Visualisation (radar / pitch drawing) ────────────────────────────────────
+matplotlib>=3.7.0
+
+# ── Utilities ────────────────────────────────────────────────────────────────
+tqdm>=4.65.0                # Progress bars in CLI scripts
+pandas>=2.0.0               # Used in event stats tracking

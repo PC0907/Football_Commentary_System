@@ -1,3 +1,7 @@
+# ⚠️  SUPERSEDED — canonical version is at:
+#     modules/ui/components/tracker.py  (wraps modules/ui/components/bytetrack.py)
+# This copy is kept only for historical reference of the AFCS prototype.
+
 import cv2
 import numpy as np
 from typing import List, Dict, Tuple

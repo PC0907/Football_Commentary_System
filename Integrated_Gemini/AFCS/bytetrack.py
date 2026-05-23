@@ -1,4 +1,6 @@
-# First, let's create a ByteTrack implementation file called bytetrack.py
+# ⚠️  SUPERSEDED — canonical version with Kalman filter is at:
+#     modules/ui/components/bytetrack.py
+# This copy is kept only for historical reference of the AFCS prototype.
 
 import numpy as np
 from collections import defaultdict

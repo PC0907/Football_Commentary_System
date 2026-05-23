@@ -5,43 +5,92 @@ from collections import defaultdict
 from typing import List, Dict, Tuple, Any, Optional
 
 class FootballEventDetector:
-    def __init__(self, field_dimensions=(105, 68), min_pass_distance=3, shot_distance_threshold=20):
+    """
+    Rule-based football event detector operating on world-coordinate tracking data.
+
+    All speed thresholds are specified in **m/s** and converted to m/frame
+    internally using *fps*.  This prevents the previous bug where thresholds
+    were implicitly in m/frame, making them 30× too tight at 30 FPS
+    (e.g. ``ball_speed > 5`` m/frame ≡ 150 m/s — physically impossible).
+
+    Threshold rationale (FIFA-typical values, tuneable):
+    ─────────────────────────────────────────────────────────────────────────
+    THRESHOLD                       VALUE   RATIONALE
+    shot_speed_ms                   8 m/s   Minimum credible shot speed (~29 km/h)
+    free_kick_speed_ms              3 m/s   Ball resumes movement after set piece
+    stationary_speed_ms             0.3 m/s Ball is considered stationary below this
+    min_pass_distance               3 m     Ignore micro-movements within possession
+    shot_distance_threshold         20 m    Must be within 20 m of goal to be a shot
+    possession_radius_m             1.5 m   Ball "owned" if nearest player is <1.5 m
+    foul_proximity_m                2.0 m   Players must be <2 m apart for foul check
+    foul_ball_proximity_m           3.0 m   Ball must be <3 m from fouled player
+    ─────────────────────────────────────────────────────────────────────────
+    """
+
+    def __init__(
+        self,
+        field_dimensions=(105, 68),
+        fps: float = 30.0,
+        min_pass_distance: float = 3.0,
+        shot_distance_threshold: float = 20.0,
+        shot_speed_ms: float = 8.0,
+        free_kick_speed_ms: float = 3.0,
+        stationary_speed_ms: float = 0.3,
+        possession_radius_m: float = 1.5,
+        foul_proximity_m: float = 2.0,
+        foul_ball_proximity_m: float = 3.0,
+    ):
         """
-        Initialize the event detector with field dimensions and thresholds
-        
-        Args:
-            field_dimensions: Tuple of (length, width) in meters
-            min_pass_distance: Minimum distance in meters to consider a ball movement as a pass
-            shot_distance_threshold: Distance to goal in meters to consider as a shot
+        Parameters
+        ----------
+        field_dimensions        : (length, width) in metres
+        fps                     : video frame rate — used to convert m/s → m/frame
+        min_pass_distance       : min ball travel (m) to register as a pass
+        shot_distance_threshold : max distance from goal (m) to register as a shot
+        shot_speed_ms           : min ball speed (m/s) to register as a shot
+        free_kick_speed_ms      : min ball speed (m/s) to register a free-kick restart
+        stationary_speed_ms     : max ball speed (m/s) below which ball is "stationary"
+        possession_radius_m     : radius (m) within which a player "has" the ball
+        foul_proximity_m        : max inter-player distance (m) for foul detection
+        foul_ball_proximity_m   : max ball-to-fouled-player distance (m) to confirm foul
         """
         self.field_length, self.field_width = field_dimensions
-        self.min_pass_distance = min_pass_distance
+        self.fps = max(fps, 1.0)
+        self.min_pass_distance       = min_pass_distance
         self.shot_distance_threshold = shot_distance_threshold
-        
+        self.possession_radius_m     = possession_radius_m
+        self.foul_proximity_m        = foul_proximity_m
+        self.foul_ball_proximity_m   = foul_ball_proximity_m
+
+        # Convert m/s thresholds to m/frame for per-frame speed comparisons
+        self.shot_speed_mf        = shot_speed_ms        / self.fps
+        self.free_kick_speed_mf   = free_kick_speed_ms   / self.fps
+        self.stationary_speed_mf  = stationary_speed_ms  / self.fps
+
         # Define field zones and landmarks
         self.zones = self._define_field_zones()
-        
-        # Define goal positions (center of goal line)
+
+        # Goal centre positions
         self.goals = {
-            'home': (0, self.field_width/2),
-            'away': (self.field_length, self.field_width/2)
+            "home": (0,                 self.field_width / 2),
+            "away": (self.field_length, self.field_width / 2),
         }
-        
+
         # Event history
         self.events = []
-        
-        # Event detection state variables
-        self.ball_possession = None  # Player ID who has the ball
-        self.ball_possession_team = None  # Team with possession
-        self.last_ball_contact = None  # Last player to touch the ball
-        self.ball_stationary_frames = 0  # Counter for stationary ball
-        self.stationary_threshold = 5  # Frames to consider ball stationary
-        self.ball_speed_samples = []  # Recent ball speeds for spike detection
-        self.ball_speed_window = 10  # Frames to track ball speed
-        self.is_play_active = True  # Flag for if play is active or stopped
-        
-        # Previous frame data
-        self.prev_ball_pos = None
+
+        # Detection state
+        self.ball_possession       = None   # player_id with the ball
+        self.ball_possession_team  = None   # team_id with the ball
+        self.last_ball_contact     = None
+        self.ball_stationary_frames = 0
+        self.stationary_threshold  = 5      # consecutive frames to call ball stationary
+        self.ball_speed_samples: list = []
+        self.ball_speed_window     = 10
+        self.is_play_active        = True
+
+        # Previous-frame state
+        self.prev_ball_pos    = None
         self.prev_players_pos = {}
 
     def _define_field_zones(self) -> Dict[str, Dict]:
@@ -170,23 +219,27 @@ class FootballEventDetector:
         return closest_player, closest_team, min_distance
 
     def _is_ball_stationary(self, current_ball_pos: Tuple[float, float]) -> bool:
-        """Check if the ball is stationary"""
+        """
+        Return True if the ball moved less than stationary_speed_mf metres since
+        the previous frame.
+
+        Threshold is fps-normalised at construction time, so this check is
+        independent of video frame rate.
+        """
         if self.prev_ball_pos is None:
             return False
-        
         distance = self._calculate_distance(self.prev_ball_pos, current_ball_pos)
-        return distance < 0.2  # Less than 20cm movement
+        return distance < self.stationary_speed_mf
 
     def _detect_ball_possession(self, ball_pos: Tuple[float, float], players_pos: Dict) -> Tuple[Optional[str], Optional[str]]:
-        """Detect which player has possession of the ball
-        
-        Returns:
-            Tuple of (player_id, team_id) or (None, None) if no possession
+        """
+        Return (player_id, team_id) of the player in possession, or (None, None).
+
+        A player is deemed in possession when they are within *possession_radius_m*
+        of the ball (default 1.5 m).
         """
         closest_player, closest_team, distance = self._find_closest_player(players_pos, ball_pos)
-        
-        # Assume possession if player is within 1.5 meters of the ball
-        if distance <= 1.5:
+        if distance <= self.possession_radius_m:
             return closest_player, closest_team
         return None, None
 
@@ -219,38 +272,45 @@ class FootballEventDetector:
         
         return None
 
-    def detect_shot(self, 
-                   ball_pos: Tuple[float, float], 
+    def detect_shot(self,
+                   ball_pos: Tuple[float, float],
                    ball_speed: float,
                    current_possession: Tuple[str, str]) -> Optional[Dict]:
-        """Detect if a shot has occurred"""
+        """
+        Detect a shot on goal.
+
+        Conditions (all must hold):
+        1. Ball is within *shot_distance_threshold* metres of the opponent goal.
+        2. Ball speed exceeds *shot_speed_mf* metres/frame
+           (≡ *shot_speed_ms* m/s at construction fps — default 8 m/s / ~29 km/h).
+        3. Ball is in the attacking half for the team in possession.
+
+        The previous threshold of ``ball_speed > 5`` m/frame was equivalent to
+        150 m/s at 30 FPS — impossible — so no shots were ever detected.
+        """
         if None in current_possession:
             return None
-            
+
         player_id, team_id = current_possession
-        
-        # Calculate distance to opponent's goal
-        if team_id == 'home':
-            goal_pos = self.goals['away']
-        else:
-            goal_pos = self.goals['home']
-        
+        goal_pos = self.goals["away"] if team_id == "home" else self.goals["home"]
         distance_to_goal = self._calculate_distance(ball_pos, goal_pos)
-        
-        # High ball speed towards goal
-        if (distance_to_goal <= self.shot_distance_threshold and 
-            ball_speed > 5 and  # Speed threshold (adjust as needed)
-            (team_id == 'home' and ball_pos[0] > self.field_length / 2 or 
-             team_id == 'away' and ball_pos[0] < self.field_length / 2)):
-            
+
+        in_attacking_half = (
+            (team_id == "home" and ball_pos[0] > self.field_length / 2) or
+            (team_id == "away" and ball_pos[0] < self.field_length / 2)
+        )
+
+        if (distance_to_goal <= self.shot_distance_threshold
+                and ball_speed >= self.shot_speed_mf
+                and in_attacking_half):
             return {
-                'type': 'shot',
-                'player': player_id,
-                'team': team_id,
-                'position': ball_pos,
-                'distance_to_goal': distance_to_goal
+                "type":             "shot",
+                "player":           player_id,
+                "team":             team_id,
+                "position":         ball_pos,
+                "distance_to_goal": distance_to_goal,
+                "ball_speed_ms":    ball_speed * self.fps,   # store in m/s for readability
             }
-        
         return None
 
     def detect_goal(self, 
@@ -317,27 +377,31 @@ class FootballEventDetector:
         
         return None
 
-    def detect_free_kick(self, 
+    def detect_free_kick(self,
                         ball_pos: Tuple[float, float],
                         is_ball_stationary: bool,
                         ball_speed: float) -> Optional[Dict]:
-        """Detect if a free kick is being taken"""
-        if not is_ball_stationary or self.ball_stationary_frames < self.stationary_threshold:
+        """
+        Detect a free-kick restart: ball was stationary for ≥ stationary_threshold
+        frames and then suddenly accelerates past free_kick_speed_mf metres/frame
+        (≡ free_kick_speed_ms m/s — default 3 m/s).
+
+        The previous threshold of ``ball_speed > 3`` m/frame ≡ 90 m/s — never fired.
+        """
+        if self.ball_stationary_frames < self.stationary_threshold:
             return None
-        
-        # Sudden increase in ball speed after being stationary
-        if ball_speed > 3 and self.ball_stationary_frames >= self.stationary_threshold:
-            # Determine which team is taking the free kick based on the closest player
-            closest_player, closest_team, _ = self._find_closest_player(self.prev_players_pos, self.prev_ball_pos)
-            
+
+        if ball_speed >= self.free_kick_speed_mf:
+            closest_player, closest_team, _ = self._find_closest_player(
+                self.prev_players_pos, self.prev_ball_pos
+            )
             if closest_player and closest_team:
                 return {
-                    'type': 'free_kick',
-                    'team': closest_team,
-                    'player': closest_player,
-                    'position': ball_pos
+                    "type":     "free_kick",
+                    "team":     closest_team,
+                    "player":   closest_player,
+                    "position": ball_pos,
                 }
-        
         return None
 
     def detect_foul(self, 
@@ -356,18 +420,19 @@ class FootballEventDetector:
             return None
         
         potential_fouls = []
-        
+
         # Check for player collisions
+        # foul_proximity_m default = 2.0 m  (was 1.0 m — too tight for noisy homography)
         for team1, team1_players in players_pos.items():
             for team2, team2_players in players_pos.items():
                 if team1 == team2:
-                    continue  # Skip same team collisions
-                
+                    continue  # Skip same-team contacts
+
                 for player1_id, player1_pos in team1_players.items():
                     for player2_id, player2_pos in team2_players.items():
                         distance = self._calculate_distance(player1_pos, player2_pos)
-                        
-                        if distance < 1.0:  # Players are very close
+
+                        if distance < self.foul_proximity_m:
                             # Check if one player had sudden velocity change
                             if (player1_id in player_velocities and 
                                 player_velocities[player1_id]['magnitude'] > 2.0 and
@@ -403,7 +468,7 @@ class FootballEventDetector:
         fouled_player_pos = players_pos[most_severe['fouled_team']][most_severe['fouled_player']]
         distance_to_ball = self._calculate_distance(fouled_player_pos, ball_pos)
         
-        if distance_to_ball < 3.0:  # Ball is close to the fouled player
+        if distance_to_ball < self.foul_ball_proximity_m:
             foul_event = {
                 'type': 'foul',
                 'fouling_player': most_severe['fouling_player'],

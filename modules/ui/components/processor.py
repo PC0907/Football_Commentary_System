@@ -109,11 +109,16 @@ class VideoProcessor(QThread):
             _, field_positions = self.homography_processor.process(frame, detections)
             tracked_objects = self.tracker.update(detections)
 
-            events = self.event_detector.detect([])
+            # TODO: Pass real field_positions + tracked_objects once HomographyProcessor
+            # is wired to the real homography.py implementation.
+            # For now the event detector and commentary generator receive stubs.
+            frame_snapshot = {
+                'timestamp': timestamp,
+                'tracking': tracked_objects,
+                'field_positions': field_positions,
+            }
+            events = self.event_detector.detect([frame_snapshot])
             commentary = self.commentary_generator.generate(events)
-
-            # TODO: Integrate actual jersey detection and event recognition.
-            # Right now these are placeholder stubs for the pipeline.
 
             tracking_data = {'players': {}, 'ball': None}
             for obj in tracked_objects:

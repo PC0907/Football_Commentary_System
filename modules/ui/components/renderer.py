@@ -108,14 +108,22 @@ class Renderer:
             )
         
         # Draw commentary if available
-        if 'commentary' in metadata:
+        if 'commentary' in metadata and metadata['commentary']:
             commentary = metadata['commentary']
+            # commentary may be a list of strings or a plain string
+            if isinstance(commentary, list):
+                commentary = ' | '.join(str(c) for c in commentary)
+            commentary = str(commentary)
+            # Truncate to avoid overflowing the frame width
+            max_chars = 80
+            if len(commentary) > max_chars:
+                commentary = commentary[:max_chars - 3] + '...'
             cv2.putText(
                 rendered,
                 commentary,
                 (10, 110),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.7,
+                0.6,
                 self.colors['text'],
                 2
             )

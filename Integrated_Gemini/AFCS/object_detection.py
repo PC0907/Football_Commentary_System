@@ -1,3 +1,7 @@
+# ⚠️  SUPERSEDED — canonical version is at:
+#     modules/ui/components/object_detector.py
+# This copy is kept only for historical reference of the AFCS prototype.
+
 import cv2
 import torch
 from ultralytics import YOLO  # Importing YOLO

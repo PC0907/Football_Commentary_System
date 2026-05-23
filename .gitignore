@@ -1,24 +1,4 @@
-# Ignore test videos
-test_videos/
-test_videos/*.mp4
-test_videos/*.avi
-test_videos/*.mov
-test_videos/*.mkv
-test_videos/*.flv
-test_videos/*.wmv
-test_videos/*.webm
-
-# Ignore output videos
-output_videos/
-output_videos/*.mp4
-output_videos/*.avi
-output_videos/*.mov
-output_videos/*.mkv
-output_videos/*.flv
-output_videos/*.wmv
-output_videos/*.webm
-
-# General video files in any directory
+# ── Video files ───────────────────────────────────────────────────────────────
 *.mp4
 *.avi
 *.mov
@@ -27,3 +7,58 @@ output_videos/*.webm
 *.wmv
 *.webm
 
+# ── Python bytecode ───────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+.Python
+
+# ── Python packaging / build ──────────────────────────────────────────────────
+*.egg
+*.egg-info/
+dist/
+build/
+wheels/
+sdist/
+.eggs/
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ── App-generated runtime artifacts ──────────────────────────────────────────
+output/          # processed video output dirs (any level)
+*.log            # app.log, etc.
+*.npy            # numpy save files (e.g. field_point_coordinates.npy)
+*.srt            # generated subtitle / commentary files
+
+# ── Environment / secrets ─────────────────────────────────────────────────────
+.env
+.env.*
+*.env
+
+# ── IDE / OS ──────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Testing / coverage ────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/

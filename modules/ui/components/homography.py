@@ -23,8 +23,9 @@ KEYPOINT_NAMES = [
     "Small rect. right top LEFT", "Small rect. right top RIGHT"
 ]
 
-# Hardcoded path for the model
-MODEL_PATH = "./best.pt"  # Change this as per the actual location
+# Model lives next to this file in the components/ directory
+from pathlib import Path as _Path
+MODEL_PATH = str(_Path(__file__).parent / "best.pt")
 CONFIDENCE_THRESHOLD = 0.8
 
 # Field Points and their corresponding line pairs
@@ -135,7 +136,7 @@ FIELD_POINT_TO_KEYPOINT_LINES = {
         ("Side line bottom LEFT"," Side line bottom RIGHT"),  # Line 2
     ]    # Add other field points similarly
 }
-print(f"Debug: Loaded FIELD_POINT_TO_KEYPOINT_LINES with {len(FIELD_POINT_TO_KEYPOINT_LINES)} field points")
+# (field point map loaded — {len(FIELD_POINT_TO_KEYPOINT_LINES)} entries)
 # Coordinates for keypoints in the field (in meters, origin at top-left)
 KEYPOINTS_DATA = [
     (1, 0, 0, "far_left_corner"),

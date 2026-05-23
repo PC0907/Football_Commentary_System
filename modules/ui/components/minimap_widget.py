@@ -16,7 +16,7 @@ Object-id → colour mapping (matches detection_utils.LABELS):
 
 from __future__ import annotations
 
-from typing import List, Dict, Any
+from typing import Any, Dict, List, Tuple
 
 from PyQt6.QtWidgets import QWidget, QSizePolicy
 from PyQt6.QtCore import Qt, QRectF, QPointF, QSize
@@ -58,18 +58,55 @@ class MinimapWidget(QWidget):
     The widget re-renders automatically on each call.
     """
 
+    # EMA blend factor: 0 = frozen, 1 = no smoothing.  0.35 feels responsive
+    # without jitter; lower this if the dots still stutter.
+    _EMA_ALPHA: float = 0.35
+
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._positions: List[Dict[str, Any]] = []
         self._confidence: float = 0.0
+        # EMA state: track_id → (smoothed_x, smoothed_y)
+        self._smooth: Dict[Any, Tuple[float, float]] = {}
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setMinimumSize(220, 144)
 
     # ── Public slots ──────────────────────────────────────────────────────────
 
     def update_positions(self, positions: List[Dict[str, Any]]) -> None:
-        """Receive world-coordinate positions and repaint."""
-        self._positions = positions
+        """
+        Receive world-coordinate positions, apply EMA smoothing, and repaint.
+
+        Each dict is expected to carry:
+          ``track_id``        — stable per-object ID (used as EMA cache key)
+          ``object_id``       — YOLO class 0-4 (used for colour lookup)
+          ``world_x_meters``  — float
+          ``world_y_meters``  — float
+        """
+        alpha = self._EMA_ALPHA
+        active_keys: set = set()
+
+        smoothed: List[Dict[str, Any]] = []
+        for pos in positions:
+            # Prefer track_id as the stable key; fall back to object_id
+            key = pos.get("track_id", pos.get("object_id", id(pos)))
+            active_keys.add(key)
+
+            wx = float(pos.get("world_x_meters", 0.0))
+            wy = float(pos.get("world_y_meters", 0.0))
+
+            if key in self._smooth:
+                ox, oy = self._smooth[key]
+                wx = ox + alpha * (wx - ox)
+                wy = oy + alpha * (wy - oy)
+
+            self._smooth[key] = (wx, wy)
+            smoothed.append({**pos, "world_x_meters": wx, "world_y_meters": wy})
+
+        # Prune tracks that have disappeared this frame
+        self._smooth = {k: v for k, v in self._smooth.items() if k in active_keys}
+
+        self._positions = smoothed
         self.update()
 
     def update_confidence(self, confidence: float) -> None:

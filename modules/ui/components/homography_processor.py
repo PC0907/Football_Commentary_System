@@ -39,6 +39,8 @@ class HomographyProcessor:
         # Cached homography matrix from the most recent successful frame
         self._H: np.ndarray | None = None
         self.last_confidence: float = 0.0
+        # Maps track_id → YOLO class (object_id) for the current frame
+        self._class_map: Dict[int, int] = {}
 
     # ------------------------------------------------------------------
     # Public API
@@ -74,6 +76,7 @@ class HomographyProcessor:
         try:
             transformed, confidence = self._run_homography(frame, object_positions)
             self.last_confidence = confidence
+            self._restore_class_ids(transformed)
             return frame.copy(), transformed
 
         except ValueError as exc:
@@ -82,6 +85,7 @@ class HomographyProcessor:
             if self._H is not None and object_positions:
                 try:
                     transformed = transform_object_positions(object_positions, self._H)
+                    self._restore_class_ids(transformed)
                     self.last_confidence = max(0.0, self.last_confidence - 0.05)
                     return frame.copy(), transformed
                 except Exception as exc2:
@@ -101,17 +105,42 @@ class HomographyProcessor:
     def _build_object_positions(
         self, detections: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """Convert detection dicts to the format expected by homography.py."""
+        """
+        Convert detection dicts to the format expected by homography.py.
+
+        homography.py uses ``object_id`` as a unique identifier per object;
+        we use ``track_id`` for that role so each tracked object keeps a stable
+        identity across frames.  The true YOLO class (0=Player-L … 4=Ball) is
+        saved in ``self._class_map`` and restored after the transform so that
+        field_positions carry both ``track_id`` and the correct ``object_id``
+        (YOLO class) for minimap colour lookup.
+        """
         positions = []
+        self._class_map = {}
         for i, d in enumerate(detections):
+            track_id   = int(d.get("track_id", i))
+            yolo_class = int(d.get("object_id", -1))
+            self._class_map[track_id] = yolo_class
             positions.append(
                 {
-                    "object_id": d.get("track_id", d.get("object_id", i)),
-                    "pixel_x": float(d.get("pixel_x", d.get("center_x", 0))),
-                    "pixel_y": float(d.get("pixel_y", d.get("center_y", 0))),
+                    "object_id": track_id,   # homography uses this as a unique ID
+                    "pixel_x":   float(d.get("pixel_x", d.get("center_x", 0))),
+                    "pixel_y":   float(d.get("pixel_y", d.get("center_y", 0))),
                 }
             )
         return positions
+
+    def _restore_class_ids(self, transformed: List[Dict[str, Any]]) -> None:
+        """
+        After transform, ``object_id`` still holds the track_id value.
+        Rename it to ``track_id`` and restore the real YOLO class as
+        ``object_id`` so downstream consumers (minimap, event detector) see
+        the correct values.
+        """
+        for pos in transformed:
+            tid = pos.get("object_id", -1)
+            pos["track_id"]  = tid
+            pos["object_id"] = self._class_map.get(tid, -1)
 
     def _run_homography(
         self,

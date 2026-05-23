@@ -1,8 +1,7 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QSlider, 
-                           QPushButton, QHBoxLayout, QSizePolicy,
-                           QFrame)
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QSlider,
+                             QPushButton, QHBoxLayout, QSizePolicy, QFrame)
 from PyQt6.QtCore import Qt, QTimer, QSize
-from PyQt6.QtGui import QPixmap, QImage, QFont, QIcon
+from PyQt6.QtGui import QPixmap, QImage, QFont
 import cv2
 import numpy as np
 import time
@@ -40,10 +39,7 @@ class VideoPlayer(QWidget):
         self.video_frame.setMinimumSize(480, 360)
         self.video_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.video_frame.setFrameShape(QFrame.Shape.StyledPanel)
-        self.video_frame.setStyleSheet("""
-            background-color: #222;
-            border-radius: 8px;
-        """)
+        self.video_frame.setStyleSheet("border-radius: 8px;")
         
         # Set placeholder image
         placeholder = QPixmap(480, 360)
@@ -55,9 +51,8 @@ class VideoPlayer(QWidget):
         # Controls
         controls_layout = QHBoxLayout()
         
-        # Play/Pause button
-        self.play_button = QPushButton()
-        self.play_button.setIcon(QIcon("icons/play.png"))
+        # Play/Pause button — use Unicode symbols so no icon files are needed
+        self.play_button = QPushButton("▶")
         self.play_button.setFixedSize(36, 36)
         self.play_button.clicked.connect(self.toggle_play)
         self.play_button.setEnabled(False)
@@ -141,7 +136,7 @@ class VideoPlayer(QWidget):
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
         
         self.playing = True
-        self.play_button.setIcon(QIcon("icons/pause.png"))
+        self.play_button.setText("⏸")
         
         # Start the timer to update frames
         interval = int(1000 / self.fps) if self.fps > 0 else 33  # Default to 30fps
@@ -151,7 +146,7 @@ class VideoPlayer(QWidget):
         """Pause video playback"""
         self.playing = False
         self.timer.stop()
-        self.play_button.setIcon(QIcon("icons/play.png"))
+        self.play_button.setText("▶")
     
     def is_playing(self):
         """Check if the video is currently playing"""

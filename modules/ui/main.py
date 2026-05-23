@@ -48,47 +48,85 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# ── Colour tokens (broadcast dark theme) ─────────────────────────────────────
-BG          = "#0B0F1A"
-PANEL       = "#141927"
-CARD        = "#1C2438"
-BORDER      = "#2A3347"
-ACCENT      = "#3B82F6"
-TEAM_A      = "#1D4ED8"
-TEAM_B      = "#DC2626"
-TEXT        = "#F1F5F9"
-TEXT_DIM    = "#94A3B8"
-TEXT_MUTED  = "#475569"
-SUCCESS     = "#10B981"
-WARNING     = "#F59E0B"
-DANGER      = "#EF4444"
+# ── Fixed tokens (team colours, semantic) ─────────────────────────────────────
+TEAM_A  = "#1D4ED8"
+TEAM_B  = "#DC2626"
+SUCCESS = "#10B981"
+WARNING = "#F59E0B"
+DANGER  = "#EF4444"
 
-# ── Stylesheet ────────────────────────────────────────────────────────────────
-_QSS = f"""
+# ── Per-theme colour palettes ─────────────────────────────────────────────────
+_PALETTES: dict = {
+    "Dark": {
+        "BG": "#0B0F1A", "PANEL": "#141927", "CARD": "#1C2438",
+        "BORDER": "#2A3347", "ACCENT": "#3B82F6",
+        "TEXT": "#F1F5F9", "TEXT_DIM": "#94A3B8", "TEXT_MUTED": "#475569",
+        "PRESSED": "#2563EB", "DANGER_BG": "#7F1D1D",
+    },
+    "Light": {
+        "BG": "#F8FAFC", "PANEL": "#FFFFFF", "CARD": "#F1F5F9",
+        "BORDER": "#E2E8F0", "ACCENT": "#3B82F6",
+        "TEXT": "#0F172A", "TEXT_DIM": "#475569", "TEXT_MUTED": "#94A3B8",
+        "PRESSED": "#2563EB", "DANGER_BG": "#FEE2E2",
+    },
+    "Blue": {
+        "BG": "#0C1A2E", "PANEL": "#112240", "CARD": "#172E52",
+        "BORDER": "#1E3A5F", "ACCENT": "#38BDF8",
+        "TEXT": "#E0F2FE", "TEXT_DIM": "#7DD3FC", "TEXT_MUTED": "#38BDF8",
+        "PRESSED": "#0284C7", "DANGER_BG": "#7F1D1D",
+    },
+    "Green": {
+        "BG": "#052E16", "PANEL": "#0D3B22", "CARD": "#14532D",
+        "BORDER": "#166534", "ACCENT": "#22C55E",
+        "TEXT": "#F0FDF4", "TEXT_DIM": "#86EFAC", "TEXT_MUTED": "#4ADE80",
+        "PRESSED": "#15803D", "DANGER_BG": "#7F1D1D",
+    },
+}
+
+# Module-level aliases — always Dark; updated by _apply_palette() at runtime
+BG         = _PALETTES["Dark"]["BG"]
+PANEL      = _PALETTES["Dark"]["PANEL"]
+CARD       = _PALETTES["Dark"]["CARD"]
+BORDER     = _PALETTES["Dark"]["BORDER"]
+ACCENT     = _PALETTES["Dark"]["ACCENT"]
+TEXT       = _PALETTES["Dark"]["TEXT"]
+TEXT_DIM   = _PALETTES["Dark"]["TEXT_DIM"]
+TEXT_MUTED = _PALETTES["Dark"]["TEXT_MUTED"]
+
+
+def _build_qss(theme: str = "Dark") -> str:
+    """Build the full application QSS for the given theme name."""
+    p = _PALETTES.get(theme, _PALETTES["Dark"])
+    BG_        = p["BG"];       PANEL_  = p["PANEL"];   CARD_   = p["CARD"]
+    BORDER_    = p["BORDER"];   ACCENT_ = p["ACCENT"]
+    TEXT_      = p["TEXT"];     DIM_    = p["TEXT_DIM"]; MUTED_  = p["TEXT_MUTED"]
+    PRESSED_   = p["PRESSED"];  DBG_    = p["DANGER_BG"]
+
+    return f"""
 /* ── Global ──────────────────────────────────────────────────────── */
 * {{
     font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    color: {TEXT};
+    color: {TEXT_};
 }}
 QMainWindow, QWidget {{
-    background-color: {BG};
+    background-color: {BG_};
 }}
 
 /* ── Panels / cards ──────────────────────────────────────────────── */
 QFrame#panel {{
-    background-color: {PANEL};
-    border: 1px solid {BORDER};
+    background-color: {PANEL_};
+    border: 1px solid {BORDER_};
     border-radius: 8px;
 }}
 QFrame#card {{
-    background-color: {CARD};
-    border: 1px solid {BORDER};
+    background-color: {CARD_};
+    border: 1px solid {BORDER_};
     border-radius: 6px;
 }}
 
 /* ── Section labels ──────────────────────────────────────────────── */
 QLabel#section_label {{
-    color: {TEXT_MUTED};
+    color: {MUTED_};
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 1.5px;
@@ -96,35 +134,35 @@ QLabel#section_label {{
 
 /* ── Buttons ─────────────────────────────────────────────────────── */
 QPushButton {{
-    background-color: {CARD};
-    color: {TEXT};
-    border: 1px solid {BORDER};
+    background-color: {CARD_};
+    color: {TEXT_};
+    border: 1px solid {BORDER_};
     border-radius: 6px;
     padding: 8px 18px;
     font-size: 12px;
     font-weight: 600;
 }}
 QPushButton:hover {{
-    background-color: {ACCENT};
-    border-color: {ACCENT};
+    background-color: {ACCENT_};
+    border-color: {ACCENT_};
 }}
 QPushButton:pressed {{
-    background-color: #2563EB;
+    background-color: {PRESSED_};
 }}
 QPushButton:disabled {{
-    background-color: {PANEL};
-    color: {TEXT_MUTED};
-    border-color: {BORDER};
+    background-color: {PANEL_};
+    color: {MUTED_};
+    border-color: {BORDER_};
 }}
 QPushButton#primary {{
-    background-color: {ACCENT};
-    border-color: {ACCENT};
+    background-color: {ACCENT_};
+    border-color: {ACCENT_};
 }}
 QPushButton#primary:hover {{
-    background-color: #2563EB;
+    background-color: {PRESSED_};
 }}
 QPushButton#danger {{
-    background-color: #7F1D1D;
+    background-color: {DBG_};
     border-color: {DANGER};
 }}
 QPushButton#danger:hover {{
@@ -135,52 +173,52 @@ QPushButton#danger:hover {{
 QProgressBar {{
     border: none;
     border-radius: 4px;
-    background-color: {CARD};
+    background-color: {CARD_};
     height: 6px;
     text-align: center;
     font-size: 11px;
-    color: {TEXT_DIM};
+    color: {DIM_};
 }}
 QProgressBar::chunk {{
-    background-color: {ACCENT};
+    background-color: {ACCENT_};
     border-radius: 4px;
 }}
 
 /* ── Commentary feed ─────────────────────────────────────────────── */
 QTextEdit#commentary {{
-    background-color: {CARD};
-    border: 1px solid {BORDER};
+    background-color: {CARD_};
+    border: 1px solid {BORDER_};
     border-radius: 6px;
     padding: 8px;
     font-size: 12px;
     line-height: 1.6;
-    color: {TEXT};
+    color: {TEXT_};
 }}
 
 /* ── Combo box ───────────────────────────────────────────────────── */
 QComboBox {{
-    background-color: {CARD};
-    border: 1px solid {BORDER};
+    background-color: {CARD_};
+    border: 1px solid {BORDER_};
     border-radius: 5px;
     padding: 4px 10px;
     font-size: 12px;
-    color: {TEXT};
+    color: {TEXT_};
 }}
 QComboBox::drop-down {{ border: none; }}
 QComboBox QAbstractItemView {{
-    background-color: {PANEL};
-    border: 1px solid {BORDER};
-    selection-background-color: {ACCENT};
+    background-color: {PANEL_};
+    border: 1px solid {BORDER_};
+    selection-background-color: {ACCENT_};
 }}
 
 /* ── Slider ──────────────────────────────────────────────────────── */
 QSlider::groove:horizontal {{
     height: 4px;
-    background: {CARD};
+    background: {CARD_};
     border-radius: 2px;
 }}
 QSlider::handle:horizontal {{
-    background: {ACCENT};
+    background: {ACCENT_};
     border: none;
     width: 12px;
     height: 12px;
@@ -188,7 +226,7 @@ QSlider::handle:horizontal {{
     border-radius: 6px;
 }}
 QSlider::sub-page:horizontal {{
-    background: {ACCENT};
+    background: {ACCENT_};
     border-radius: 2px;
 }}
 """
@@ -360,7 +398,7 @@ class FootballAnalysisApp(QMainWindow):
     def _init_ui(self) -> None:
         self.setWindowTitle("⚽  Football Analysis System")
         self.setMinimumSize(1280, 820)
-        self.setStyleSheet(_QSS)
+        self.setStyleSheet(_build_qss("Dark"))
 
         root = QWidget()
         self.setCentralWidget(root)
@@ -784,6 +822,8 @@ class FootballAnalysisApp(QMainWindow):
 
     def _change_theme(self, name: str) -> None:
         self.theme_manager.set_theme(name)
+        # Regenerate and apply the full QSS for the chosen theme
+        self.setStyleSheet(_build_qss(name))
 
     # ══════════════════════════════════════════════════════════════════════════
     # Signal slots (from VideoProcessor)

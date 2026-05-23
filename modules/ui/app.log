@@ -92,3 +92,32 @@ Traceback (most recent call last):
     ball_x, ball_y, ball_w, ball_h = metadata['tracking']['ball']
 TypeError: cannot unpack non-iterable NoneType object
 2026-05-24 01:03:05,720 INFO Application closed
+2026-05-24 01:05:43,953 INFO Application started
+2026-05-24 01:05:51,315 INFO Video loaded: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/Input_Videos/efl.mkv
+2026-05-24 01:05:52,550 INFO Processing started
+2026-05-24 01:07:00,126 INFO Processing complete: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/output/efl_processed.mp4
+2026-05-24 01:07:02,909 INFO Video loaded: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/Input_Videos/updated_video (1).mkv
+2026-05-24 01:07:04,484 INFO Processing started
+2026-05-24 01:07:21,796 INFO Processing complete: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/output/updated_video (1)_processed.mp4
+2026-05-24 01:07:23,895 INFO Application closed
+2026-05-24 01:11:02,831 INFO Application started
+2026-05-24 01:11:09,374 INFO Video loaded: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/Input_Videos/efl.mkv
+2026-05-24 01:11:10,732 WARNING PhiCommentaryGenerator not available (No module named 'transformers'). Falling back to TemplateCommentaryGenerator.
+2026-05-24 01:11:10,733 INFO Processing started
+2026-05-24 01:11:10,745 INFO RuleBasedEventDetector: updating fps 30.0 → 25.0
+2026-05-24 01:11:37,152 INFO Processing complete: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/output/efl_processed.mp4
+2026-05-24 01:11:38,265 INFO Application closed
+2026-05-24 01:21:39,546 INFO Application started
+2026-05-24 01:21:49,450 INFO Video loaded: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/Input_Videos/efl.mkv
+2026-05-24 01:21:50,967 WARNING PhiCommentaryGenerator not available (No module named 'transformers'). Falling back to TemplateCommentaryGenerator.
+2026-05-24 01:21:50,968 INFO Processing started
+2026-05-24 01:21:50,980 INFO RuleBasedEventDetector: updating fps 30.0 → 25.0
+2026-05-24 01:22:31,581 INFO Processing complete: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/output/efl_processed.mp4
+2026-05-24 01:22:34,700 INFO Application closed
+2026-05-24 01:23:41,915 INFO Application started
+2026-05-24 01:23:49,642 INFO Video loaded: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/Input_Videos/efl.mkv
+2026-05-24 01:23:51,006 WARNING PhiCommentaryGenerator not available (No module named 'transformers'). Falling back to TemplateCommentaryGenerator.
+2026-05-24 01:23:51,006 INFO Processing started
+2026-05-24 01:23:51,019 INFO RuleBasedEventDetector: updating fps 30.0 → 25.0
+2026-05-24 01:24:12,500 INFO Processing complete: /home/fawwaz/FootballProjectRep/Football_Commentary_System/modules/ui/output/efl_processed.mp4
+2026-05-24 01:24:14,866 INFO Application closed

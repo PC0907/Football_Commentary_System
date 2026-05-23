@@ -1,62 +1,61 @@
-2025-03-02 21:24:35,835 - INFO - Application started
-2025-03-02 21:24:47,558 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
-2025-03-02 21:24:55,737 - INFO - Theme changed to Blue
-2025-03-02 21:24:57,274 - INFO - Theme changed to Green
-2025-03-02 21:24:59,017 - INFO - Theme changed to Dark
-2025-03-02 21:25:00,169 - INFO - Theme changed to Green
-2025-03-02 21:25:06,341 - INFO - Video processing started
-2025-03-02 21:25:07,844 - INFO - Video processing completed: /home/fawwaz/football_commentary_output/processed_CityUtdR.mp4
-2025-03-02 21:25:44,050 - INFO - Application closed
-2025-03-02 21:34:18,853 - INFO - Application started
-2025-03-02 21:34:33,280 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
-2025-03-02 21:38:00,980 - INFO - Application started
-2025-03-02 21:38:08,147 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
-2025-03-02 21:38:33,147 - INFO - Default team sheet saved
-2025-03-02 21:38:33,148 - INFO - Team sheet updated
-2025-03-02 21:38:35,086 - INFO - Video processing started
-2025-03-02 21:38:35,109 - ERROR - Video processing error: 'players'
-2025-03-02 21:38:35,109 - ERROR - Processing error: 'players'
-2025-03-02 21:38:36,952 - ERROR - Video processing failed
-2025-03-02 21:40:38,552 - INFO - Application started
-2025-03-02 21:40:41,161 - INFO - Application closed
-2025-03-02 21:40:56,068 - INFO - Application started
-2025-03-02 21:41:00,634 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
-2025-03-02 21:41:03,598 - INFO - Default team sheet saved
-2025-03-02 21:41:03,598 - INFO - Team sheet updated
-2025-03-02 21:41:06,190 - INFO - Default team sheet saved
-2025-03-02 21:41:06,190 - INFO - Team sheet updated
-2025-03-02 21:41:07,112 - INFO - Video processing started
-2025-03-02 21:41:07,148 - ERROR - Processing error: name 'time' is not defined
-2025-03-02 21:41:07,149 - ERROR - Processing error: name 'time' is not defined
-2025-03-02 21:41:08,221 - ERROR - Video processing failed
-2025-03-02 21:42:46,270 - INFO - Application closed
-2025-03-02 21:42:48,917 - INFO - Application started
-2025-03-02 21:42:54,773 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
-2025-03-02 21:43:05,338 - INFO - Default team sheet saved
-2025-03-02 21:43:05,339 - INFO - Team sheet updated
-2025-03-02 21:43:06,215 - INFO - Video processing started
-2025-03-02 21:43:07,824 - INFO - Video processing completed: /tmp/tmpybyxwl25/processed_video.mp4
-2025-03-02 21:43:25,461 - INFO - Application closed
-2025-03-02 21:44:44,427 - INFO - Application started
-2025-03-02 21:44:47,508 - INFO - Theme changed to Blue
-2025-03-02 21:44:52,453 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
-2025-03-02 21:44:55,584 - INFO - Theme changed to Green
-2025-03-02 21:45:11,539 - INFO - Video processing started
-2025-03-02 21:45:13,064 - INFO - Video processing completed: /tmp/tmpkww4qmzr/processed_video.mp4
-2025-03-02 21:45:17,334 - INFO - Default team sheet saved
-2025-03-02 21:45:17,334 - INFO - Team sheet updated
-2025-03-02 21:45:18,130 - INFO - Video processing started
-2025-03-02 21:45:19,712 - INFO - Video processing completed: /tmp/tmpz0g635wd/processed_video.mp4
-2025-03-02 21:45:28,886 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
-2025-03-02 21:45:31,509 - INFO - Default team sheet saved
-2025-03-02 21:45:31,509 - INFO - Team sheet updated
-2025-03-02 21:45:32,138 - INFO - Video processing started
-2025-03-02 21:45:33,641 - INFO - Video processing completed: /tmp/tmp9x4fn16k/processed_video.mp4
-2025-03-02 21:45:40,962 - INFO - Application closed
-2025-03-02 21:45:54,677 - INFO - Application started
-2025-03-02 21:45:59,468 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
-2025-03-02 21:46:01,844 - INFO - Default team sheet saved
-2025-03-02 21:46:01,844 - INFO - Team sheet updated
-2025-03-02 21:46:02,546 - INFO - Video processing started
-2025-03-02 21:46:04,065 - INFO - Video processing completed: /tmp/tmp61324zj6/processed_video.mp4
-2025-03-02 21:46:19,706 - INFO - Application closed
+2025-03-02 22:19:39,748 - INFO - Application started
+2025-03-02 22:19:49,075 - INFO - Application closed
+2025-03-04 10:06:31,462 - INFO - Application started
+2025-03-04 10:06:43,529 - INFO - Application closed
+2025-03-08 12:08:10,049 - INFO - Application started
+2025-03-08 12:08:18,377 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
+2025-03-08 12:11:22,337 - INFO - Video uploaded: /home/fawwaz/Downloads/vid_2.mkv
+2025-03-08 12:11:31,162 - INFO - Application closed
+2025-03-08 12:13:35,425 - INFO - Application started
+2025-03-08 12:26:22,322 - INFO - Application started
+2025-03-08 12:26:29,998 - INFO - Video uploaded: /home/fawwaz/Downloads/vid_2.mkv
+2025-03-08 12:26:31,117 - INFO - Video processing started
+2025-03-08 12:26:31,581 - ERROR - Processing error: 'VideoProcessor' object has no attribute 'process_frame'
+2025-03-08 12:26:31,582 - ERROR - Processing error: 'VideoProcessor' object has no attribute 'process_frame'
+2025-03-08 12:26:33,303 - ERROR - Video processing failed
+2025-03-08 12:26:41,112 - INFO - Video processing started
+2025-03-08 12:26:41,297 - ERROR - Processing error: 'VideoProcessor' object has no attribute 'process_frame'
+2025-03-08 12:26:41,297 - ERROR - Processing error: 'VideoProcessor' object has no attribute 'process_frame'
+2025-03-08 12:26:42,410 - ERROR - Video processing failed
+2025-03-08 12:26:44,645 - INFO - Default team sheet saved
+2025-03-08 12:26:44,645 - INFO - Team sheet updated
+2025-03-08 12:26:45,309 - INFO - Video processing started
+2025-03-08 12:26:45,505 - ERROR - Processing error: 'VideoProcessor' object has no attribute 'process_frame'
+2025-03-08 12:26:45,505 - ERROR - Processing error: 'VideoProcessor' object has no attribute 'process_frame'
+2025-03-08 12:26:46,777 - ERROR - Video processing failed
+2025-03-08 12:26:51,082 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
+2025-03-08 12:26:52,414 - INFO - Video processing started
+2025-03-08 12:26:52,434 - ERROR - Processing error: 'VideoProcessor' object has no attribute 'process_frame'
+2025-03-08 12:26:52,434 - ERROR - Processing error: 'VideoProcessor' object has no attribute 'process_frame'
+2025-03-08 12:26:53,592 - ERROR - Video processing failed
+2025-03-08 12:26:55,054 - INFO - Application closed
+2025-03-08 12:27:18,521 - INFO - Application started
+2025-03-08 12:27:28,479 - INFO - Video uploaded: /home/fawwaz/Downloads/vid_2.mkv
+2025-03-08 12:27:29,175 - INFO - Video processing started
+2025-03-08 12:27:29,411 - ERROR - Processing error: VideoProcessor.process_frame() takes 5 positional arguments but 6 were given
+2025-03-08 12:27:29,411 - ERROR - Processing error: VideoProcessor.process_frame() takes 5 positional arguments but 6 were given
+2025-03-08 12:27:30,584 - ERROR - Video processing failed
+2025-03-08 12:29:01,470 - INFO - Application started
+2025-03-08 12:29:06,865 - INFO - Video uploaded: /home/fawwaz/Downloads/vid_2.mkv
+2025-03-08 12:29:07,732 - INFO - Video processing started
+2025-03-08 12:32:25,553 - INFO - Application started
+2025-03-08 12:32:33,457 - INFO - Video uploaded: /home/fawwaz/Downloads/vid_2.mkv
+2025-03-08 12:32:37,853 - INFO - Video processing started
+2025-03-08 12:32:38,908 - ERROR - Processing error: name 'minutes' is not defined
+2025-03-08 12:32:38,908 - ERROR - Processing error: name 'minutes' is not defined
+2025-03-08 12:32:40,149 - ERROR - Video processing failed
+2025-03-08 12:32:41,754 - INFO - Application closed
+2025-03-08 12:33:00,475 - INFO - Application started
+2025-03-08 12:33:22,421 - INFO - Video uploaded: /home/fawwaz/Downloads/vid_2.mkv
+2025-03-08 17:06:50,261 - INFO - Application started
+2025-03-08 17:06:52,587 - INFO - Application closed
+2025-04-24 20:04:01,362 - INFO - Application started
+2025-04-24 20:04:19,153 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
+2025-04-24 20:04:46,994 - INFO - Video processing started
+2025-04-24 20:04:48,672 - ERROR - Processing error: name 'Path' is not defined
+2025-04-24 20:04:48,673 - ERROR - Processing error: name 'Path' is not defined
+2025-04-24 20:04:50,131 - ERROR - Video processing failed
+2025-04-24 20:47:56,876 - INFO - Application started
+2025-04-24 20:48:02,998 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4
+2025-04-25 15:48:25,105 - INFO - Application started
+2025-04-25 15:48:31,324 - INFO - Video uploaded: /home/fawwaz/Downloads/CityUtdR.mp4

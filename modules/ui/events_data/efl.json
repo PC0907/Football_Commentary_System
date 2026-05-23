@@ -1,0 +1,677 @@
+{
+    "UrlLocal": "updated_video",
+    "predictions": [
+        {
+            "gameTime": "1 - 00:01 ",
+            "label": "PASS",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "3320",
+            "half": "1",
+            "confidence": "0.82293689846992493"
+        },
+        {
+            "gameTime": "1 - 00:05",
+            "label": "PASS",
+            "actor": "15",
+            "secondaryActor" : "16",
+            "team": "left",
+            "position": "4400",
+            "half": "1",
+            "confidence": "0.8406671643257141"
+        },
+        {
+            "gameTime": "1 - 00:09",
+            "label": "CROSS",
+            "actor": "16",
+            "secondaryActor" : "NA",
+            "team": "left",
+            "position": "5080",
+            "half": "1",
+            "confidence": "0.8505921423435211"
+        },
+        {
+            "gameTime": "1 - 00:05",
+            "label": "Indirect free-kick",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "5320",
+            "half": "1",
+            "confidence": "0.21905212104320526"
+        },
+        {
+            "gameTime": "1 - 00:07",
+            "label": "Offside",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "7040",
+            "half": "1",
+            "confidence": "0.28695382475852966"
+        },
+        {
+            "gameTime": "1 - 00:13",
+            "label": "Shots on target",
+            "actor": "11",
+            "secondaryActor" : "NA",
+            "team": "left",
+            "position": "8640",
+            "half": "1",
+            "confidence": "0.842288827896118"
+        },
+        {
+            "gameTime": "1 - 00:08",
+            "label": "Shots off target",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "8840",
+            "half": "1",
+            "confidence": "0.5275335907936096"
+        },
+        {
+            "gameTime": "1 - 00:10",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "10560",
+            "half": "1",
+            "confidence": "0.7599000930786133"
+        },
+        {
+            "gameTime": "1 - 00:11",
+            "label": "Corner",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "11680",
+            "half": "1",
+            "confidence": "0.44862234592437744"
+        },
+        {
+            "gameTime": "1 - 00:13",
+            "label": "Shots off target",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "13160",
+            "half": "1",
+            "confidence": "0.2977854907512665"
+        },
+        {
+            "gameTime": "1 - 00:13",
+            "label": "Offside",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "13600",
+            "half": "1",
+            "confidence": "0.3024981915950775"
+        },
+        {
+            "gameTime": "1 - 00:13",
+            "label": "Shots on target",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "13640",
+            "half": "1",
+            "confidence": "0.5482282638549805"
+        },
+        {
+            "gameTime": "1 - 00:13",
+            "label": "Shots off target",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "13880",
+            "half": "1",
+            "confidence": "0.2967965304851532"
+        },
+        {
+            "gameTime": "1 - 00:14",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "14240",
+            "half": "1",
+            "confidence": "0.5663159489631653"
+        },
+        {
+            "gameTime": "1 - 00:14",
+            "label": "Goal",
+            "position": "14320",
+            "half": "1",
+            "confidence": "0.2971266210079193"
+        },
+        {
+            "gameTime": "1 - 00:16",
+            "label": "Ball out of play",
+            "position": "16520",
+            "half": "1",
+            "confidence": "0.20392225682735443"
+        },
+        {
+            "gameTime": "1 - 00:17",
+            "label": "Corner",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "17400",
+            "half": "1",
+            "confidence": "0.3540616035461426"
+        },
+        {
+            "gameTime": "1 - 00:20",
+            "label": "Corner",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "20040",
+            "half": "1",
+            "confidence": "0.6352606415748596"
+        },
+        {
+            "gameTime": "1 - 00:20",
+            "label": "Clearance",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "20120",
+            "half": "1",
+            "confidence": "0.2520950734615326"
+        },
+        {
+            "gameTime": "1 - 00:20",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "20680",
+            "half": "1",
+            "confidence": "0.6961026787757874"
+        },
+        {
+            "gameTime": "1 - 00:21",
+            "label": "Corner",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "21680",
+            "half": "1",
+            "confidence": "0.25092512369155884"
+        },
+        {
+            "gameTime": "1 - 00:23",
+            "label": "Indirect free-kick",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "23840",
+            "half": "1",
+            "confidence": "0.3273489773273468"
+        },
+        {
+            "gameTime": "1 - 00:25",
+            "label": "Indirect free-kick",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "25840",
+            "half": "1",
+            "confidence": "0.4360329210758209"
+        },
+        {
+            "gameTime": "1 - 00:30",
+            "label": "Goal",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "30080",
+            "half": "1",
+            "confidence": "0.3443683385848999"
+        },
+        {
+            "gameTime": "1 - 00:30",
+            "label": "Shots on target",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "30240",
+            "half": "1",
+            "confidence": "0.42948126792907715"
+        },
+        {
+            "gameTime": "1 - 00:34",
+            "label": "Clearance",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "34600",
+            "half": "1",
+            "confidence": "0.3268167972564697"
+        },
+        {
+            "gameTime": "1 - 00:34",
+            "label": "Corner",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "34760",
+            "half": "1",
+            "confidence": "0.4858866035938263"
+        },
+        {
+            "gameTime": "1 - 00:35",
+            "label": "Shots off target",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "35960",
+            "half": "1",
+            "confidence": "0.3117179274559021"
+        },
+        {
+            "gameTime": "1 - 00:36",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "36120",
+            "half": "1",
+            "confidence": "0.4764268100261688"
+        },
+        {
+            "gameTime": "1 - 00:37",
+            "label": "Corner",
+            "actor": "55",
+            "secondaryActor" : "NA",
+            "team": "left",
+            "position": "41160",
+            "half": "1",
+            "confidence": "0.9843395948410034"
+        },
+        {
+            "gameTime": "1 - 00:41",
+            "label": "PASS",
+            "actor": "4",
+            "secondaryActor" : "NA",
+            "team": "left", 
+            "position": "41880",
+            "half": "1",
+            "confidence": "0.61269537806510925"
+        },
+        {
+            "gameTime": "1 - 00:42",
+            "label": "Shots on target",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "42000",
+            "half": "1",
+            "confidence": "0.20785067975521088"
+        },
+        {
+            "gameTime": "1 - 00:42",
+            "label": "Shots off target",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "42080",
+            "half": "1",
+            "confidence": "0.3291822671890259"
+        },
+        {
+            "gameTime": "1 - 00:44",
+            "label": "Foul",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "44120",
+            "half": "1",
+            "confidence": "0.21868383884429932"
+        },
+        {
+            "gameTime": "1 - 00:45",
+            "label": "CROSS",
+            "actor": "80",
+            "secondaryActor" : "NA",
+            "team": "left",
+            "position": "45240",
+            "half": "1",
+            "confidence": "0.8623991072177887"
+        },
+        {
+            "gameTime": "1 - 00:45",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "45800",
+            "half": "1",
+            "confidence": "0.27900367975234985"
+        },
+        {
+            "gameTime": "1 - 00:46",
+            "label": "Shots off target",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "46400",
+            "half": "1",
+            "confidence": "0.21977496147155762"
+        },
+        {
+            "gameTime": "1 - 00:47",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "47240",
+            "half": "1",
+            "confidence": "0.2916703522205353"
+        },
+        {
+            "gameTime": "1 - 00:48",
+            "label": "Corner",
+            "position": "48000",
+            "half": "1",
+            "confidence": "0.29486095905303955"
+        },
+        {
+            "gameTime": "1 - 00:53",
+            "label": "Indirect free-kick",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "53800",
+            "half": "1",
+            "confidence": "0.4981129467487335"
+        },
+        {
+            "gameTime": "1 - 00:55",
+            "label": "PASS",
+            "actor": "92",
+            "secondaryActor" : "83",
+            "team": "left",
+            "position": "55040",
+            "half": "1",
+            "confidence": "0.8847361743450165"
+        },
+        {
+            "gameTime": "1 - 00:56",
+            "label": "Throw-in",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "56000",
+            "half": "1",
+            "confidence": "0.36027368903160095"
+        },
+        {
+            "gameTime": "1 - 00:56",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "56360",
+            "half": "1",
+            "confidence": "0.28143954277038574"
+        },
+        {
+            "gameTime": "1 - 00:56",
+            "label": "Offside",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "56880",
+            "half": "1",
+            "confidence": "0.21501120924949646"
+        },
+        {
+            "gameTime": "1 - 00:57",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "57440",
+            "half": "1",
+            "confidence": "0.44655197858810425"
+        },
+        {
+            "gameTime": "1 - 01:01",
+            "label": "Ball out of play",
+            "actor": "NA",
+            "secondaryActor" : "NA",
+            "team": "left",
+            "position": "61400",
+            "half": "1",
+            "confidence": "0.9323944449424744"
+        },
+        {
+            "gameTime": "1 - 01:06",
+            "label": "Substitution",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "66040",
+            "half": "1",
+            "confidence": "0.2000529021024704"
+        },
+        {
+            "gameTime": "1 - 01:06",
+            "label": "Throw-in",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "66680",
+            "half": "1",
+            "confidence": "0.25629445910453796"
+        },
+        {
+            "gameTime": "1 - 01:10",
+            "label": "Yellow card",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "70160",
+            "half": "1",
+            "confidence": "0.24036820232868195"
+        },
+        {
+            "gameTime": "1 - 01:10",
+            "label": "Substitution",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "70720",
+            "half": "1",
+            "confidence": "0.30463582277297974"
+        },
+        {
+            "gameTime": "1 - 01:11",
+            "label": "Yellow card",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "71120",
+            "half": "1",
+            "confidence": "0.2219943404197693"
+        },
+        {
+            "gameTime": "1 - 01:13",
+            "label": "Substitution",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "73080",
+            "half": "1",
+            "confidence": "0.5049399733543396"
+        },
+        {
+            "gameTime": "1 - 01:15",
+            "label": "Substitution",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "75400",
+            "half": "1",
+            "confidence": "0.5526672005653381"
+        },
+        {
+            "gameTime": "1 - 01:16",
+            "label": "Substitution",
+            "position": "76160",
+            "half": "1",
+            "confidence": "0.560759425163269"
+        },
+        {
+            "gameTime": "1 - 01:16",
+            "label": "Corner",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "76240",
+            "half": "1",
+            "confidence": "0.3374948799610138"
+        },
+        {
+            "gameTime": "1 - 01:17",
+            "label": "Kick-off",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "77360",
+            "half": "1",
+            "confidence": "0.28748631477355957"
+        },
+        {
+            "gameTime": "1 - 01:17",
+            "label": "Corner",
+            "actor": "114",
+            "secondaryActor" : "NA",
+            "team": "left",
+            "position": "77800",
+            "half": "1",
+            "confidence": "0.894789457321167"
+        },
+        {
+            "gameTime": "1 - 01:17",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "77920",
+            "half": "1",
+            "confidence": "0.24341660737991333"
+        },
+        {
+            "gameTime": "1 - 01:17",
+            "label": "Clearance",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "77960",
+            "half": "1",
+            "confidence": "0.45746922492980957"
+        },
+        {
+            "gameTime": "1 - 01:19",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "79520",
+            "half": "1",
+            "confidence": "0.6415085196495056"
+        },
+        {
+            "gameTime": "1 - 01:20",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "80640",
+            "half": "1",
+            "confidence": "0.5052908062934875"
+        },
+        {
+            "gameTime": "1 - 01:21",
+            "label": "Corner",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "81480",
+            "half": "1",
+            "confidence": "0.5215058922767639"
+        },
+        {
+            "gameTime": "1 - 01:22",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "82880",
+            "half": "1",
+            "confidence": "0.3038105368614197"
+        },
+        {
+            "gameTime": "1 - 01:22",
+            "label": "Corner",
+            "position": "82880",
+            "half": "1",
+            "confidence": "0.3255954086780548"
+        },
+        {
+            "gameTime": "1 - 01:24",
+            "label": "Ball out of play",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "84880",
+            "half": "1",
+            "confidence": "0.34558048844337463"
+        },
+        {
+            "gameTime": "1 - 01:28",
+            "label": "Clearance",
+            "actor": "4",
+            "secondaryActor" : "12",
+            "team": "left",
+            "position": "88120",
+            "half": "1",
+            "confidence": "0.22085097432136536"
+        },
+        {
+            "gameTime": "1 - 01:29",
+            "label": "Ball out of play",
+            "actor": "NA",
+            "secondaryActor" : "NA",
+            "team": "left",
+            "position": "88120",
+            "half": "1",
+            "confidence": "0.82085097432136536"
+        },
+        {
+            "gameTime": "1 - 01:39",
+            "label": "DRIVE",
+            "actor": "137",
+            "secondaryActor" : "NA",
+            "team": "left",
+            "position": "88120",
+            "half": "1",
+            "confidence": "0.82085097432136536"
+        },
+        {
+            "gameTime": "1 - 01:38",
+            "label": "Indirect free-kick",
+            "position": "98320",
+            "half": "1",
+            "confidence": "0.7873288989067078"
+        }
+    ]
+}

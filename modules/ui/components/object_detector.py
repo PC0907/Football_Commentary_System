@@ -79,6 +79,7 @@ class ObjectDetector:
                 "confidence": float(conf[i]),
                 "x1": x1, "y1": y1, "x2": x2, "y2": y2,
                 "center_x": cx,  "center_y": cy,
+                "pixel_x": cx, "pixel_y": cy,
                 "width":    w,   "height":   h,
             })
         return detections

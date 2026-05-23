@@ -62,7 +62,7 @@ class Renderer:
                     )
         
         # Draw ball if detected
-        if 'tracking' in metadata and 'ball' in metadata['tracking']:
+        if 'tracking' in metadata and 'ball' in metadata['tracking'] and metadata['tracking']['ball'] is not None:
             ball_x, ball_y, ball_w, ball_h = metadata['tracking']['ball']
             cv2.circle(
                 rendered,

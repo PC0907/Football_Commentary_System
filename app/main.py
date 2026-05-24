@@ -34,11 +34,11 @@ from PyQt6.QtGui import (
     QPen, QLinearGradient, QIcon,
 )
 
-from components.video_player    import VideoPlayer
-from components.team_sheet      import TeamSheetDialog
-from components.processor       import VideoProcessor
-from components.minimap_widget  import MinimapWidget
-from themes                     import ThemeManager
+from app.widgets.video_player import VideoPlayer
+from app.widgets.team_sheet import TeamSheetDialog
+from app.processor_thread import VideoProcessor
+from app.widgets.minimap import MinimapWidget
+from app.themes import ThemeManager
 
 
 # ── Logging ───────────────────────────────────────────────────────────────────

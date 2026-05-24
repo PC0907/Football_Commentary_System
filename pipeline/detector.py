@@ -16,7 +16,7 @@ from ultralytics import YOLO
 log = logging.getLogger(__name__)
 
 from .bytetrack import BYTETracker
-from utils.detection_utils import (
+from .utils import (
     LABELS, BOX_COLORS, TRACK_COLORS,
     get_grass_hsv, get_players_boxes,
     get_kits_colors, get_kits_classifier, classify_kits, get_left_team_label,
@@ -50,7 +50,7 @@ class ObjectDetector:
         self.model_path = (
             Path(model_path).resolve()
             if model_path
-            else Path(__file__).resolve().parent / "best_object.pt"
+            else Path(__file__).resolve().parents[1] / "models" / "best_object.pt"
         )
         self.conf_threshold = conf_threshold
         self.device = device
@@ -187,7 +187,7 @@ def process_video(video_path: str, model_path: str | None = None,
     """
     try:
         if model_path is None:
-            model_path = str(Path(__file__).resolve().parent / "best_object.pt")
+            model_path = str(Path(__file__).resolve().parents[1] / "models" / "best_object.pt")
 
         os.makedirs(output_dir, exist_ok=True)
 

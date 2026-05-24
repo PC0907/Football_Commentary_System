@@ -43,12 +43,12 @@ import cv2
 
 from PyQt6.QtCore import QThread, pyqtSignal
 
-from .event_detector       import BaseEventDetector, EventDetectorFactory
-from .commentary_generator import BaseCommentaryGenerator, CommentaryGeneratorFactory
-from .homography_processor import HomographyProcessor
-from .object_detector      import ObjectDetector
-from .renderer             import Renderer
-from .tracker              import Tracker
+from pipeline.events.detector import BaseEventDetector, EventDetectorFactory
+from pipeline.commentary.generator import BaseCommentaryGenerator, CommentaryGeneratorFactory
+from pipeline.homography.processor import HomographyProcessor
+from pipeline.detector import ObjectDetector
+from pipeline.renderer import Renderer
+from pipeline.tracker import Tracker
 
 log = logging.getLogger(__name__)
 

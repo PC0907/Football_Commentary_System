@@ -23,9 +23,9 @@ KEYPOINT_NAMES = [
     "Small rect. right top LEFT", "Small rect. right top RIGHT"
 ]
 
-# Model lives next to this file in the components/ directory
+# Model weights live in models/ at the project root
 from pathlib import Path as _Path
-MODEL_PATH = str(_Path(__file__).parent / "best.pt")
+MODEL_PATH = str(_Path(__file__).parents[2] / "models" / "best.pt")
 CONFIDENCE_THRESHOLD = 0.5   # lowered from 0.8 — more keypoints survive in typical broadcast shots
 
 # Field Points and their corresponding line pairs

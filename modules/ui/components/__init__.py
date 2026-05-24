@@ -1,1 +1,0 @@
-"""UI pipeline component package."""

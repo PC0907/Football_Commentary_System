@@ -12,7 +12,7 @@ from typing import List, Dict, Tuple, Any
 
 import numpy as np
 
-from .homography import (
+from .model import (
     get_model,
     KEYPOINT_NAMES,
     CONFIDENCE_THRESHOLD,

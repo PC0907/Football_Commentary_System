@@ -32,11 +32,11 @@ Every detector must return events in this form:
 
 from __future__ import annotations
 
-import importlib.util
 import logging
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+from .football import FootballEventDetector
 
 import numpy as np
 
@@ -119,14 +119,8 @@ class RuleBasedEventDetector(BaseEventDetector):
         self._frame_count = 0
 
     def _build_inner(self, fps, **kwargs):
-        """Load FootballEventDetector via importlib."""
-        spec = importlib.util.spec_from_file_location(
-            "_football_event_detector_2d",
-            Path(__file__).parent / "2D_event_detector.py",
-        )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module.FootballEventDetector(fps=fps, **kwargs)
+        """Instantiate FootballEventDetector from pipeline.events.football."""
+        return FootballEventDetector(fps=fps, **kwargs)
 
     def set_fps(self, fps: float) -> None:
         """Rebuild inner detector with the real fps from the opened video."""

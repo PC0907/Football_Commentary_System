@@ -26,7 +26,7 @@ KEYPOINT_NAMES = [
 # Model lives next to this file in the components/ directory
 from pathlib import Path as _Path
 MODEL_PATH = str(_Path(__file__).parent / "best.pt")
-CONFIDENCE_THRESHOLD = 0.8
+CONFIDENCE_THRESHOLD = 0.5   # lowered from 0.8 — more keypoints survive in typical broadcast shots
 
 # Field Points and their corresponding line pairs
 FIELD_POINT_TO_KEYPOINT_LINES = {

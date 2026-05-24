@@ -58,9 +58,9 @@ class MinimapWidget(QWidget):
     The widget re-renders automatically on each call.
     """
 
-    # EMA blend factor: 0 = frozen, 1 = no smoothing.  0.35 feels responsive
-    # without jitter; lower this if the dots still stutter.
-    _EMA_ALPHA: float = 0.35
+    # EMA blend factor: 0 = frozen, 1 = no smoothing.
+    # 0.15 is gentle enough to eliminate RANSAC-induced jitter at 30 fps.
+    _EMA_ALPHA: float = 0.15
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -68,6 +68,8 @@ class MinimapWidget(QWidget):
         self._confidence: float = 0.0
         # EMA state: track_id → (smoothed_x, smoothed_y)
         self._smooth: Dict[Any, Tuple[float, float]] = {}
+        # When True, Team-A and Team-B display colours are swapped
+        self._teams_swapped: bool = False
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setMinimumSize(220, 144)
 
@@ -112,6 +114,11 @@ class MinimapWidget(QWidget):
     def update_confidence(self, confidence: float) -> None:
         """Store the latest homography confidence (0-1) for overlay display."""
         self._confidence = confidence
+        self.update()
+
+    def set_teams_swapped(self, swapped: bool) -> None:
+        """Swap Team-A and Team-B display colours (call when kit assignment is wrong)."""
+        self._teams_swapped = swapped
         self.update()
 
     # ── Qt overrides ──────────────────────────────────────────────────────────
@@ -263,6 +270,9 @@ class MinimapWidget(QWidget):
         painter.drawPath(path)
         painter.setClipping(False)
 
+    # Swap map: Team-A ↔ Team-B, GK-A ↔ GK-B
+    _SWAP_MAP: Dict[int, int] = {0: 1, 1: 0, 2: 3, 3: 2}
+
     def _draw_players(self, painter: QPainter, rect: QRectF) -> None:
         """Render each player/ball as a circle."""
         dot_r = max(4.0, rect.width() * 0.024)  # scales with widget size
@@ -276,6 +286,8 @@ class MinimapWidget(QWidget):
                 continue
 
             oid = int(pos.get("object_id", -1))
+            if self._teams_swapped:
+                oid = self._SWAP_MAP.get(oid, oid)
             color = _TEAM_COLORS.get(oid, _DEFAULT_COLOR)
 
             pt = self._fp(max(0, min(wx, FIELD_W)), max(0, min(wy, FIELD_H)), rect)

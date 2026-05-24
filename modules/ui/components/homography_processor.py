@@ -35,9 +35,14 @@ class HomographyProcessor:
     approximate minimap positions.
     """
 
+    # EMA weight applied to each new raw H matrix.
+    # Low alpha = smoother but slightly lagged; 0.2 is a good default for 30 fps.
+    _H_ALPHA: float = 0.2
+
     def __init__(self):
-        # Cached homography matrix from the most recent successful frame
-        self._H: np.ndarray | None = None
+        # Cached / EMA-smoothed homography matrix
+        self._H:        np.ndarray | None = None   # raw last-good H (fallback)
+        self._H_smooth: np.ndarray | None = None   # EMA-smoothed H (used for transforms)
         self.last_confidence: float = 0.0
         # Maps track_id → YOLO class (object_id) for the current frame
         self._class_map: Dict[int, int] = {}
@@ -167,15 +172,27 @@ class HomographyProcessor:
         field_coords = compute_field_point_coordinates(detectable, kpts, KEYPOINT_NAMES)
 
         # Raises ValueError when < 4 correspondences
-        H = calculate_homography_matrix(field_coords, KEYPOINTS_DATA)
-        self._H = H  # cache for subsequent frames
+        H_raw = calculate_homography_matrix(field_coords, KEYPOINTS_DATA)
+        if H_raw is None:
+            raise ValueError("findHomography returned None — collinear or insufficient points")
+
+        self._H = H_raw  # keep raw copy for fallback
+
+        # ── EMA-smooth H to kill per-frame RANSAC jitter ─────────────────────
+        if self._H_smooth is None:
+            self._H_smooth = H_raw.copy()
+        else:
+            self._H_smooth = (
+                self._H_ALPHA * H_raw + (1.0 - self._H_ALPHA) * self._H_smooth
+            )
+        H = self._H_smooth   # use smoothed matrix for all downstream work
 
         # Confidence: mix of keypoint ratio, mean confidence, and reprojection quality
         num_detected = int(np.sum(high_conf_mask))
         kpt_ratio = num_detected / len(KEYPOINT_NAMES)
         mean_conf = float(np.mean(kpts[high_conf_mask, 2])) if np.any(high_conf_mask) else 0.0
 
-        # Reprojection error
+        # Reprojection error (uses smoothed H so reprojection improves over time)
         world_map = {name: (x, y) for _, x, y, name in KEYPOINTS_DATA}
         src, dst = [], []
         for fp_name, (px, py) in field_coords.items():

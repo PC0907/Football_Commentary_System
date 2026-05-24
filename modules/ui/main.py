@@ -462,6 +462,19 @@ class FootballAnalysisApp(QMainWindow):
 
         layout.addStretch()
 
+        # Swap Teams button (for when kit detection assigns the wrong side)
+        self._btn_swap = QPushButton("⇄ Swap Teams")
+        self._btn_swap.setFixedHeight(28)
+        self._btn_swap.setStyleSheet(
+            f"font-size: 11px; padding: 2px 10px;"
+            f" background: {CARD}; border: 1px solid {BORDER}; border-radius: 4px;"
+        )
+        self._btn_swap.setCheckable(True)
+        self._btn_swap.clicked.connect(self._on_swap_teams)
+        layout.addWidget(self._btn_swap)
+
+        layout.addSpacing(12)
+
         # Theme selector
         theme_lbl = QLabel("Theme")
         theme_lbl.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 11px;")
@@ -577,17 +590,29 @@ class FootballAnalysisApp(QMainWindow):
 
         lay.addWidget(self.__divider())
 
-        # Stat rows
-        self._stat_shots_a  = QLabel("0"); self._stat_shots_b  = QLabel("0")
-        self._stat_passes_a = QLabel("0"); self._stat_passes_b = QLabel("0")
-        self._stat_fouls_a  = QLabel("0"); self._stat_fouls_b  = QLabel("0")
+        # Live tracking counters
+        self._stat_players_a = QLabel("0");  self._stat_players_b = QLabel("0")
+        lay.addLayout(self._stat_row_widget("PLAYERS IN FRAME",
+                                            self._stat_players_a,
+                                            self._stat_players_b))
 
-        for row_data in [
-            ("SHOTS",  self._stat_shots_a,  self._stat_shots_b),
-            ("PASSES", self._stat_passes_a, self._stat_passes_b),
-            ("FOULS",  self._stat_fouls_a,  self._stat_fouls_b),
-        ]:
-            lay.addLayout(self._stat_row_widget(*row_data))
+        # Ball status row
+        ball_row = QHBoxLayout()
+        ball_row.setSpacing(6)
+        ball_lbl = QLabel("BALL")
+        ball_lbl.setStyleSheet(f"color: {TEXT_DIM}; font-size: 11px;")
+        ball_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._ball_dot  = QLabel("○")
+        self._ball_text = QLabel("Not detected")
+        for w in (self._ball_dot, self._ball_text):
+            w.setFont(QFont("monospace", 11))
+            w.setStyleSheet(f"color: {TEXT_MUTED};")
+        ball_row.addStretch()
+        ball_row.addWidget(self._ball_dot)
+        ball_row.addWidget(ball_lbl)
+        ball_row.addWidget(self._ball_text)
+        ball_row.addStretch()
+        lay.addLayout(ball_row)
 
         lay.addStretch()
         return card
@@ -903,17 +928,47 @@ class FootballAnalysisApp(QMainWindow):
             poss.get("team_a", 50), poss.get("team_b", 50)
         )
 
-        # Stat counters
-        shots  = m.get("shots",  {})
-        passes = m.get("passes", {})
-        fouls  = m.get("fouls",  {})
+        # Live tracking
+        pc = m.get("player_count", {})
+        self._stat_players_a.setText(str(pc.get("team_a", 0)))
+        self._stat_players_b.setText(str(pc.get("team_b", 0)))
 
-        self._stat_shots_a.setText(str(shots.get("team_a",  0)))
-        self._stat_shots_b.setText(str(shots.get("team_b",  0)))
-        self._stat_passes_a.setText(str(passes.get("team_a", 0)))
-        self._stat_passes_b.setText(str(passes.get("team_b", 0)))
-        self._stat_fouls_a.setText(str(fouls.get("team_a",  0)))
-        self._stat_fouls_b.setText(str(fouls.get("team_b",  0)))
+        ball = m.get("ball_visible", False)
+        if ball:
+            self._ball_dot.setText("●")
+            self._ball_dot.setStyleSheet(f"color: {TEXT}; font-size: 13px;")
+            self._ball_text.setText("Tracked")
+            self._ball_text.setStyleSheet(f"color: {SUCCESS}; font-size: 11px;")
+        else:
+            self._ball_dot.setText("○")
+            self._ball_dot.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 13px;")
+            self._ball_text.setText("Not detected")
+            self._ball_text.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 11px;")
+
+    def _on_swap_teams(self, checked: bool) -> None:
+        """Toggle team A ↔ B colours everywhere when kit assignment is wrong."""
+        self._minimap.set_teams_swapped(checked)
+        # Also flip the header score labels' colours and possession bar side
+        if checked:
+            self._lbl_team_a.setStyleSheet(f"color: {TEAM_B};")
+            self._lbl_team_b.setStyleSheet(f"color: {TEAM_A};")
+            self._stats_name_a.setStyleSheet(f"color: {TEAM_B};")
+            self._stats_name_b.setStyleSheet(f"color: {TEAM_A};")
+            self._btn_swap.setStyleSheet(
+                f"font-size: 11px; padding: 2px 10px;"
+                f" background: {ACCENT}; border: 1px solid {ACCENT};"
+                f" border-radius: 4px; color: white;"
+            )
+        else:
+            self._lbl_team_a.setStyleSheet(f"color: {TEAM_A};")
+            self._lbl_team_b.setStyleSheet(f"color: {TEAM_B};")
+            self._stats_name_a.setStyleSheet(f"color: {TEAM_A};")
+            self._stats_name_b.setStyleSheet(f"color: {TEAM_B};")
+            self._btn_swap.setStyleSheet(
+                f"font-size: 11px; padding: 2px 10px;"
+                f" background: {CARD}; border: 1px solid {BORDER};"
+                f" border-radius: 4px;"
+            )
 
     # ══════════════════════════════════════════════════════════════════════════
     # Team-sheet persistence helpers

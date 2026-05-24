@@ -5,12 +5,15 @@ Kit-colour helpers and rendering utilities live in utils/detection_utils.py —
 this module imports from there to avoid duplication with 2Dview.py.
 """
 
+import logging
 import os
 import cv2
 import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 from ultralytics import YOLO
+
+log = logging.getLogger(__name__)
 
 from .bytetrack import BYTETracker
 from utils.detection_utils import (
@@ -22,7 +25,26 @@ from utils.detection_utils import (
 
 
 class ObjectDetector:
-    """Simple YOLO-based object detector for the UI pipeline."""
+    """
+    YOLO-based object detector for the UI pipeline.
+
+    The model emits raw class ids that represent generic player/GK/ball roles.
+    On the first call to ``detect()`` we fit a 2-cluster KMeans on player
+    kit colours so that subsequent frames can reliably label detections as
+    Team-A (object_id 0), Team-B (object_id 1), GK-A (2), GK-B (3), or
+    Ball (4) — the canonical ids expected by the minimap, event detector, and
+    stats accumulator.
+
+    Raw model class mapping (standalone script convention):
+      0 → outfield player (any team) → re-labelled to 0 or 1 by kit colour
+      1 → goalkeeper (any team)      → re-labelled to 2 or 3 by field half
+      2 → ball                       → → 4
+      3 → main referee               → → 5
+      4 → side referee               → → 6
+      5 → staff                      → → 7
+    """
+
+    _RAW_SHIFT = 2   # classes ≥ 2 are shifted up by _RAW_SHIFT (ball → 4 etc.)
 
     def __init__(self, model_path=None, conf_threshold: float = 0.5, device=None):
         self.model_path = (
@@ -34,6 +56,11 @@ class ObjectDetector:
         self.device = device
         self.model = self._load_model()
 
+        # ── Kit-colour team classifier (initialised on first frame) ───────────
+        self._kits_clf   = None        # fitted KMeans(n_clusters=2)
+        self._left_label = 0           # KMeans cluster index that is Team-A
+        self._grass_hsv  = None        # cached grass colour for masking
+
     def _load_model(self) -> YOLO:
         if not self.model_path.exists():
             raise FileNotFoundError(
@@ -44,12 +71,14 @@ class ObjectDetector:
             model.to(self.device)
         return model
 
+    # ── Public API ────────────────────────────────────────────────────────────
+
     def detect(self, frame: np.ndarray) -> list[dict]:
         """
-        Run YOLO on *frame* and return a list of detection dicts.
+        Run YOLO on *frame* and return canonical detection dicts.
 
-        Each dict has keys: id, object_id, label, confidence,
-        x1, y1, x2, y2, center_x, center_y, width, height.
+        Keys: object_id, label, confidence, x1, y1, x2, y2,
+              center_x, center_y, pixel_x, pixel_y, width, height.
         """
         results = self.model(frame, conf=self.conf_threshold, verbose=False)
         if not results:
@@ -60,27 +89,87 @@ class ObjectDetector:
         if boxes is None or len(boxes) == 0:
             return []
 
-        cls  = boxes.cls.cpu().numpy()
-        xyxy = boxes.xyxy.cpu().numpy()
-        conf = boxes.conf.cpu().numpy()
+        cls_arr  = boxes.cls.cpu().numpy()
+        xyxy_arr = boxes.xyxy.cpu().numpy()
+        conf_arr = boxes.conf.cpu().numpy()
 
-        detections = []
-        for i in range(len(cls)):
-            label = int(cls[i])
-            x1, y1, x2, y2 = map(int, xyxy[i])
+        frame_w = frame.shape[1]
+
+        # ── Build raw detection list & collect player crops ───────────────────
+        raw: list[dict] = []
+        player_crops: list[np.ndarray] = []
+        player_indices: list[int] = []    # indices in raw[] that are outfield players
+
+        for i in range(len(cls_arr)):
+            raw_cls = int(cls_arr[i])
+            x1, y1, x2, y2 = map(int, xyxy_arr[i])
             w  = x2 - x1
             h  = y2 - y1
             cx = (x1 + x2) / 2.0
             cy = (y1 + y2) / 2.0
-            detections.append({
-                "id":         label,
-                "object_id":  label,
-                "label":      LABELS[label] if label < len(LABELS) else str(label),
-                "confidence": float(conf[i]),
+            raw.append({
+                "raw_cls": raw_cls,
+                "confidence": float(conf_arr[i]),
                 "x1": x1, "y1": y1, "x2": x2, "y2": y2,
-                "center_x": cx,  "center_y": cy,
-                "pixel_x": cx, "pixel_y": cy,
-                "width":    w,   "height":   h,
+                "cx": cx, "cy": cy, "w": w, "h": h,
+            })
+            if raw_cls == 0:   # outfield player
+                crop = frame[max(0, y1):y2, max(0, x1):x2]
+                if crop.size > 0:
+                    player_crops.append(crop)
+                    player_indices.append(i)
+
+        # ── Initialise kit-colour classifier on first frame ───────────────────
+        if self._kits_clf is None and len(player_crops) >= 2:
+            try:
+                self._grass_hsv = get_grass_hsv(frame)
+                kit_colors = get_kits_colors(player_crops, self._grass_hsv)
+                self._kits_clf  = get_kits_classifier(kit_colors)
+                # Which KMeans cluster sits on the left side of the frame?
+                # get_left_team_label returns the cluster id for the left team
+                # We need YOLO box objects — pass the boxes for player_indices
+                player_boxes_subset = [boxes[j] for j in player_indices]
+                self._left_label = get_left_team_label(
+                    player_boxes_subset, kit_colors, self._kits_clf
+                )
+            except Exception as exc:
+                log.warning("Kit-colour classifier init failed: %s", exc)
+
+        # ── Assign per-player team via kit colour (if classifier is ready) ────
+        kit_team: dict[int, int] = {}   # raw index → team (0 = left/Team-A, 1 = right/Team-B)
+        if self._kits_clf is not None and player_crops:
+            try:
+                kit_colors = get_kits_colors(player_crops, self._grass_hsv)
+                labels = self._kits_clf.predict(kit_colors)
+                for seq_i, raw_i in enumerate(player_indices):
+                    kit_team[raw_i] = int(labels[seq_i])
+            except Exception as exc:
+                log.debug("Kit-colour prediction failed: %s", exc)
+
+        # ── Build canonical detection list ────────────────────────────────────
+        detections: list[dict] = []
+        for i, r in enumerate(raw):
+            raw_cls = r["raw_cls"]
+            cx, cy  = r["cx"], r["cy"]
+
+            if raw_cls == 0:       # outfield player → team by kit colour
+                team = kit_team.get(i, 0)  # fallback to Team-A if classifier not ready
+                oid  = 0 if team == self._left_label else 1
+            elif raw_cls == 1:     # goalkeeper → team by field half
+                oid  = 2 if cx < 0.5 * frame_w else 3
+            else:                  # ball (2→4), ref (3→5), side-ref (4→6), staff (5→7)
+                oid = raw_cls + self._RAW_SHIFT
+
+            label = LABELS[oid] if oid < len(LABELS) else str(oid)
+            detections.append({
+                "id":         oid,
+                "object_id":  oid,
+                "label":      label,
+                "confidence": r["confidence"],
+                "x1": r["x1"], "y1": r["y1"], "x2": r["x2"], "y2": r["y2"],
+                "center_x":   cx,   "center_y":  cy,
+                "pixel_x":    cx,   "pixel_y":   cy,
+                "width":      r["w"], "height":  r["h"],
             })
         return detections
 

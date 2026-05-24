@@ -117,11 +117,11 @@ class VideoProcessor(QThread):
 
         # ── Match state ───────────────────────────────────────────────────────
         self.match_stats: Dict[str, Any] = {
-            "possession": {"team_a": 0, "team_b": 0},   # raw frame counts
-            "shots":      {"team_a": 0, "team_b": 0},
-            "score":      {"team_a": 0, "team_b": 0},
-            "passes":     {"team_a": 0, "team_b": 0},
-            "fouls":      {"team_a": 0, "team_b": 0},
+            "possession":   {"team_a": 0, "team_b": 0},   # raw frame counts
+            "score":        {"team_a": 0, "team_b": 0},
+            # Live tracking snapshot — updated every frame, shown as-is
+            "player_count": {"team_a": 0, "team_b": 0},
+            "ball_visible": False,
         }
 
         # Rolling frame buffer fed to the event detector
@@ -229,7 +229,7 @@ class VideoProcessor(QThread):
                 # ─────────────────────────────────────────────────────────────
                 # 6. Stats accumulation
                 # ─────────────────────────────────────────────────────────────
-                self._update_stats(events, field_positions)
+                self._update_stats(events, field_positions, tracked_objects)
 
                 # ─────────────────────────────────────────────────────────────
                 # 7. Build renderer metadata + render
@@ -284,8 +284,23 @@ class VideoProcessor(QThread):
         self,
         events: List[Dict[str, Any]],
         field_positions: List[Dict[str, Any]],
+        tracked_objects: List[Dict[str, Any]],
     ) -> None:
-        """Update match_stats from detected events and possession estimate."""
+        """Update match_stats from tracked objects, field positions, and events."""
+
+        # ── Live tracking counts (directly observable, always reliable) ───────
+        count_a = count_b = 0
+        ball_vis = False
+        for obj in tracked_objects:
+            oid = obj.get("object_id", -1)
+            if oid in (_OID_PLAYER_L, _OID_GK_L):
+                count_a += 1
+            elif oid in (_OID_PLAYER_R, _OID_GK_R):
+                count_b += 1
+            elif oid == _OID_BALL:
+                ball_vis = True
+        self.match_stats["player_count"] = {"team_a": count_a, "team_b": count_b}
+        self.match_stats["ball_visible"]  = ball_vis
 
         # ── Possession: nearest team to ball owns this frame ──────────────────
         ball = next(
@@ -311,33 +326,14 @@ class VideoProcessor(QThread):
             if best_team and best_dist <= _POSSESSION_RADIUS_M:
                 self.match_stats["possession"][best_team] += 1
 
-        # ── Event-based stats ─────────────────────────────────────────────────
+        # ── Score from goal events (the only reliable event counter) ─────────
         for e in events:
-            etype = (e.get("type") or "").lower()
-            team  = e.get("team", "")
-            if not team:
-                continue
-
-            if etype == "shot":
-                self.match_stats["shots"][team] = (
-                    self.match_stats["shots"].get(team, 0) + 1
-                )
-            elif etype == "goal":
-                self.match_stats["score"][team] = (
-                    self.match_stats["score"].get(team, 0) + 1
-                )
-                self.match_stats["shots"][team] = (
-                    self.match_stats["shots"].get(team, 0) + 1
-                )
-            elif etype in ("pass",):
-                self.match_stats["passes"][team] = (
-                    self.match_stats["passes"].get(team, 0) + 1
-                )
-            elif etype in ("foul", "penalty"):
-                # The fouling team committed the foul
-                self.match_stats["fouls"][team] = (
-                    self.match_stats["fouls"].get(team, 0) + 1
-                )
+            if (e.get("type") or "").lower() == "goal":
+                team = e.get("team", "")
+                if team:
+                    self.match_stats["score"][team] = (
+                        self.match_stats["score"].get(team, 0) + 1
+                    )
 
     def _emit_stats(self) -> None:
         """Emit match_stats with possession converted to percentages."""
@@ -351,8 +347,10 @@ class VideoProcessor(QThread):
             {
                 "players": {},
                 "match": {
-                    **self.match_stats,
-                    "possession": poss_pct,   # override raw counts with %
+                    "possession":   poss_pct,
+                    "score":        self.match_stats["score"],
+                    "player_count": self.match_stats["player_count"],
+                    "ball_visible": self.match_stats["ball_visible"],
                 },
             }
         )

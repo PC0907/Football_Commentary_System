@@ -1,6 +1,8 @@
 # Automatic Football Commentary System
 
-A computer-vision pipeline that ingests broadcast football footage and produces annotated video with real-time object tracking, bird's-eye-view radar, event detection, and auto-generated commentary (text + audio).
+A computer-vision pipeline that ingests broadcast football footage and produces annotated video
+with real-time object tracking, bird's-eye minimap, event detection, and auto-generated text
+commentary — all surfaced through a themeable PyQt6 desktop UI.
 
 ---
 
@@ -10,9 +12,10 @@ A computer-vision pipeline that ingests broadcast football footage and produces 
 - [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Running the App](#running-the-app)
+- [Model Weights](#model-weights)
 - [Module Status](#module-status)
 - [Known Issues & TODO](#known-issues--todo)
-- [Contributing](#contributing)
+- [Experiments](#experiments)
 
 ---
 
@@ -21,19 +24,23 @@ A computer-vision pipeline that ingests broadcast football footage and produces 
 | Feature | Status |
 |---------|--------|
 | Upload a match video via GUI | ✅ Working |
-| YOLO-based object detection (players, ball, ref, GK, staff) | ✅ Working |
-| Kit-colour team assignment (K-Means on HSV) | ✅ Working |
-| Multi-object tracking (ByteTrack) | ✅ Working (see bugs below) |
-| Homography → bird's-eye-view radar overlay | ✅ Working (standalone `2Dview.py`) |
-| Homography in the **UI pipeline** | ⚠️ Stubbed — returns empty positions |
-| 2D event detection (pass, shot, goal, corner, foul) | ⚠️ Stubbed — always returns [] |
-| Jersey number recognition | ⚠️ Stubbed in UI — standalone pipeline exists |
-| Template-based commentary from JSON events | ✅ Working (standalone `commentary.py`) |
-| TTS audio commentary | ✅ Working (standalone `commentary.py`) |
-| SRT subtitle overlay via ffmpeg | ✅ Working (standalone `commentary.py`) |
-| Themeable PyQt6 desktop UI | ✅ Working |
+| YOLO-based object detection (players, ball, GK, refs, staff) | ✅ Working |
+| Kit-colour KMeans team assignment | ✅ Working |
+| Multi-object tracking (ByteTrack) | ✅ Working |
+| Bird's-eye minimap (homography → world coords) | ✅ Working |
+| EMA-smoothed H matrix (eliminates minimap jitter) | ✅ Working |
+| Rule-based event detection (pass/shot/goal/corner/foul) | ✅ Wired — thresholds need tuning |
+| Template-based text commentary | ✅ Working |
+| Live commentary panel in UI | ✅ Working |
+| Player stats panel (player count, ball visibility) | ✅ Working |
+| Team swap toggle (flip team colours in minimap) | ✅ Working |
+| Themeable UI (Dark / Light / Blue / Green) | ✅ Working |
 | Team sheet editor (manual entry + CSV import) | ✅ Working |
-| Player stats tracking (possession, passes, shots…) | ⚠️ Defined but not wired to UI |
+| TTS audio commentary | ⚠️ Standalone only — not wired to real-time pipeline |
+| SRT subtitle export | ⚠️ Standalone only — not wired to real-time pipeline |
+| Jersey number recognition | ⚠️ Standalone pipeline exists — not integrated into UI |
+| LLM-based commentary (Phi / Gemma) | ⚠️ Stub in place — model not loaded |
+| Per-player distance / heatmap stats | ⚠️ Prototype exists — not integrated |
 
 ---
 
@@ -43,42 +50,47 @@ A computer-vision pipeline that ingests broadcast football footage and produces 
 Broadcast video
        │
        ▼
-┌──────────────────┐
-│  Object Detector │  YOLO (best_object.pt)
-│  8 classes:      │  Player-L/R, GK-L/R, Ball,
-│  + Kit KMeans    │  Main Ref, Side Ref, Staff
-└────────┬─────────┘
-         │ detections
-         ▼
-┌──────────────────┐
-│   ByteTracker    │  IoU-based Hungarian matching
-│   (bytetrack.py) │  → stable track_ids across frames
-└────────┬─────────┘
-         │ tracked_objects
-         ▼
-┌──────────────────┐    ┌────────────────────┐
-│  Homography      │───▶│ 2D Radar View      │
-│  (homography.py) │    │ (2Dview.py)        │
-│  YOLO keypoints  │    │ Matplotlib pitch   │
-│  → H matrix      │    │ overlay on video   │
-└────────┬─────────┘    └────────────────────┘
-         │ world coordinates (metres)
-         ▼
-┌──────────────────┐
-│ Event Detector   │  Pass / Shot / Goal /
-│ (2D_event_       │  Corner / Free-kick / Foul
-│  detector.py)    │
-└────────┬─────────┘
-         │ events
-         ▼
-┌──────────────────┐    ┌────────────────────┐
-│ Commentary Gen.  │───▶│ SRT subtitles      │
-│ (commentary.py)  │    │ Audio (TTS)        │
-│ JSON templates   │    │ ffmpeg overlay     │
-└──────────────────┘    └────────────────────┘
+┌─────────────────────────────┐
+│  ObjectDetector             │  pipeline/detector.py
+│  YOLOv8 (8 classes)        │  player_ball_detector_yolov8.pt
+│  + KMeans kit-colour teams  │
+└────────────┬────────────────┘
+             │ detections [object_id, bbox, confidence]
+             ▼
+┌─────────────────────────────┐
+│  BYTETracker                │  pipeline/tracker.py
+│  IoU-based Hungarian match  │  → stable track_ids across frames
+└────────────┬────────────────┘
+             │ tracked_objects [track_id, object_id, pixel_x/y]
+             ▼
+┌─────────────────────────────┐
+│  HomographyProcessor        │  pipeline/homography/processor.py
+│  YOLOv8 keypoints (46 pts)  │  field_keypoint_detector_yolov8.pt
+│  Line intersections → H mat │
+│  EMA-smoothed H (α=0.2)    │  → world_x_m, world_y_m per object
+└────┬──────────────────┬─────┘
+     │                  │
+     ▼                  ▼
+┌──────────┐    ┌────────────────────┐
+│ Minimap  │    │ EventDetector      │  pipeline/events/detector.py
+│ Widget   │    │ Rule-based         │  pipeline/events/football.py
+│ (Qt)     │    │ pass/shot/goal/    │
+└──────────┘    │ corner/foul        │
+                └─────────┬──────────┘
+                          │ events [type, timestamp, team, player_id]
+                          ▼
+                ┌────────────────────┐
+                │ CommentaryGenerator│  pipeline/commentary/generator.py
+                │ Template-based     │  → commentary text string
+                └─────────┬──────────┘
+                          │
+                          ▼
+                ┌────────────────────┐
+                │  Qt UI             │  app/main.py
+                │  Commentary panel  │  app/processor_thread.py
+                │  Stats panel       │  app/widgets/
+                └────────────────────┘
 ```
-
-The **UI pipeline** (`modules/ui/`) runs all of the above inside a `QThread` (`VideoProcessor`) so the GUI stays responsive during processing.
 
 ---
 
@@ -87,205 +99,207 @@ The **UI pipeline** (`modules/ui/`) runs all of the above inside a `QThread` (`V
 ```
 Football_Commentary_System/
 │
-├── modules/ui/                         ← Main application
-│   ├── main.py                         ← Entry point (PyQt6 app)
-│   ├── themes.py                       ← Light/Dark/Blue/Green themes
-│   ├── Input_Videos/                   ← Drop your .mkv/.mp4 here
-│   ├── Output_Videos/                  ← Processed output saved here
-│   ├── events_data/                    ← Per-video JSON event files
-│   ├── teamsheets/                     ← Per-video player CSV files
-│   └── components/
-│       ├── processor.py                ← QThread pipeline orchestrator
-│       ├── object_detector.py          ← YOLO wrapper + kit assignment
-│       ├── bytetrack.py                ← ByteTrack multi-object tracker
-│       ├── tracker.py                  ← Thin wrapper over BYTETracker
-│       ├── homography_processor.py     ← UI adapter (⚠️ stubbed)
-│       ├── homography.py               ← Full homography implementation ✅
-│       ├── 2D_event_detector.py        ← Event logic (⚠️ not wired to UI)
-│       ├── 2Dview.py                   ← Standalone radar-overlay script ✅
-│       ├── commentary.py               ← SRT + TTS commentary generator ✅
-│       ├── renderer.py                 ← OpenCV overlay renderer
-│       ├── video_player.py             ← In-app video player widget
-│       ├── team_sheet.py               ← Team sheet dialog (manual + CSV)
-│       ├── pipeline_workers.py         ← Worker classes (not wired yet)
-│       ├── best_object.pt              ← YOLO object detection weights
-│       └── best.pt                     ← YOLO keypoint detection weights
+├── run.py                          # Entry point — python run.py
 │
-├── jersey_recognition_pipeline/        ← Standalone jersey number OCR
-│   ├── src/pipeline/
-│   │   ├── football_pipeline.py
-│   │   ├── object_detection.py
-│   │   ├── torso_extraction.py
-│   │   └── classifier.py
-│   └── main.py
+├── pipeline/                       # Pure Python, zero Qt dependency
+│   ├── detector.py                 # YOLO object detector + KMeans team assignment
+│   ├── tracker.py                  # BYTETracker wrapper
+│   ├── bytetrack.py                # BYTETracker implementation
+│   ├── renderer.py                 # OpenCV frame annotation (boxes, tracks)
+│   ├── utils.py                    # Shared helpers (kit-colour, LABELS, draw_tracks)
+│   ├── homography/
+│   │   ├── model.py                # YOLO keypoint model, line intersection, findHomography
+│   │   └── processor.py            # HomographyProcessor (EMA-smoothed H, class-map restore)
+│   ├── events/
+│   │   ├── football.py             # FootballEventDetector (rule-based, world coords)
+│   │   └── detector.py             # BaseEventDetector ABC + factory + ensemble
+│   └── commentary/
+│       └── generator.py            # Template + LLM commentary generators + factory
 │
-├── Homography/                         ← Research notebooks & tests
-│   ├── homography.py
-│   ├── line_detection.py
-│   └── testHomography.py
+├── app/                            # Qt layer — imports pipeline, never the reverse
+│   ├── main.py                     # QMainWindow, theme, team-swap, stats panel
+│   ├── processor_thread.py         # QThread orchestrator — calls pipeline in sequence
+│   ├── themes.py                   # ThemeManager + _PALETTES (Dark/Light/Blue/Green)
+│   └── widgets/
+│       ├── video_player.py         # Dual video player widget
+│       ├── minimap.py              # Bird's-eye minimap widget (QPainter + EMA positions)
+│       └── team_sheet.py           # Team sheet dialog (CSV import, player name table)
 │
-├── Football-object-detection/          ← Earlier detection experiments
-│   ├── track.py
-│   └── CustomCode/detect_ball.py
+├── models/
+│   ├── player_ball_detector_yolov8.pt      # YOLOv8 8-class object detector
+│   └── field_keypoint_detector_yolov8.pt   # YOLOv8 46-keypoint field detector
 │
-├── event_detection/                    ← Action Spotting experiments
-│   └── action_spotting/predictor_as.py
+├── data/
+│   ├── teamsheets/efl.csv          # EFL team-sheet template (jersey, name, position)
+│   └── events/efl.json             # Sample events JSON for commentary testing
 │
-├── Player_Tracking/
-│   └── testing_sort.py
-│
-├── Integrated_Gemini/AFCS/             ← Prototype integration (WIP)
-│   ├── object_detection.py
-│   ├── tracking.py
-│   ├── homography.py
-│   └── [several stubs — pipeline.py, commentary_generation.py, etc.]
-│
-├── JerseyImageAnnotator/               ← Tool for annotating jersey images
-│   └── annotator.py
-│
-├── requirements.txt
-└── README.md
+└── experiments/                    # Per-component research / training sandboxes
+    ├── homography/                 # Keypoint detection, line intersection, H matrix
+    ├── object_detection/           # YOLO training, kit-colour experiments
+    ├── event_detection/            # Action spotting, rule-based threshold tuning
+    ├── player_tracking/            # SORT / ByteTrack experiments
+    ├── jersey_annotator/           # Annotation tool for jersey-number crops
+    ├── jersey_recognition/         # OCR pipeline (VitPose torso + CNN classifier)
+    ├── radar_view/                 # Standalone 2Dview.py (full pipeline in one file)
+    ├── commentary/                 # Template generator + TTS audio standalone script
+    └── homography_pipeline_tests/  # Integration tests, performance benchmarks
 ```
+
+Each `experiments/` subdirectory has its own `README.md` documenting the files, approach,
+problems faced, and what still needs work.
 
 ---
 
 ## Installation
 
-### 1. Clone and set up environment
-
 ```bash
-git clone <repo-url>
+git clone https://github.com/PC0907/Football_Commentary_System.git
 cd Football_Commentary_System
-
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
-pip install -r requirements.txt
+pip install ultralytics opencv-python PyQt6 numpy scikit-learn tqdm
 ```
 
-### 2. System dependencies
+### Optional dependencies
 
-```bash
-# Ubuntu / Debian
-sudo apt install ffmpeg
-
-# macOS
-brew install ffmpeg
-```
-
-### 3. Model weights
-
-The two YOLO model files are checked in under `modules/ui/components/`:
-- `best_object.pt` — detects players, ball, referee, staff (8 classes)
-- `best.pt` — detects field keypoints for homography (46 keypoints)
-
-If they are missing (Git LFS not pulled), download them and place them in that directory.
+| Package | Required for |
+|---------|-------------|
+| `pyttsx3` | TTS audio commentary (`experiments/commentary/audio_generator.py`) |
+| `pydub` | Audio mixing for video export |
+| `ffmpeg` (system) | Video + audio mux in standalone commentary script |
+| `torch` | LLM commentary (`PhiCommentaryGenerator` — stub, not yet active) |
 
 ---
 
 ## Running the App
 
 ```bash
-cd modules/ui
-python main.py
+python run.py
+```
+
+Or as a module:
+
+```bash
+python -m app.main
 ```
 
 ### Workflow
 
 1. **Upload Video** — pick a `.mp4` / `.mkv` broadcast clip.
 2. **Team Sheet** — enter player names + jersey numbers (or import a CSV).
-   - CSV format: `jersey_number,name,position`
-3. **Process Video** — runs object detection + tracking; writes annotated output to `Output_Videos/`.
-4. **Export Video** — save the output to any location.
+   CSV format: `jersey_number,name,position`
+3. **Process Video** — runs the full pipeline; annotated output is written to `Output_Videos/`.
+4. **Export Video** — save to any location.
 
 ### Standalone scripts
 
 | Script | What it does |
 |--------|--------------|
-| `modules/ui/components/2Dview.py` | Runs full detection + tracking + homography + radar overlay on a single video |
-| `modules/ui/components/commentary.py` | Generates SRT + TTS audio from a JSON events file |
-| `jersey_recognition_pipeline/main.py` | Runs jersey number OCR on a folder of player crops |
-| `Homography/testHomography.py` | Tests the homography transform on a single frame |
+| `experiments/radar_view/2Dview.py` | Full detection + tracking + homography + radar overlay on a video |
+| `experiments/commentary/audio_generator.py` | Generates SRT + TTS audio from a JSON events file |
+| `experiments/homography_pipeline_tests/test_homography.py` | Tests homography on a single frame; prints reprojection error |
+| `pipeline/detector.py` (run directly) | Tracked + annotated output video, no UI |
+
+---
+
+## Model Weights
+
+| File | Architecture | Classes / Keypoints | Used for |
+|------|-------------|---------------------|----------|
+| `models/player_ball_detector_yolov8.pt` | YOLOv8m detection | 6 raw → 8 canonical | Object detection in every frame |
+| `models/field_keypoint_detector_yolov8.pt` | YOLOv8 pose | 46 field keypoints | Homography H matrix computation |
+
+Both models were trained on the **SoccerNet** dataset and fine-tuned on broadcast footage.
 
 ---
 
 ## Module Status
 
-### Object Detection (`object_detector.py`)
-Wraps YOLO with KMeans kit-colour assignment to distinguish the two teams. The `ObjectDetector` class is clean. The module also contains a `process_video()` standalone function — this mixes concerns and should eventually be moved.
+### Object Detector (`pipeline/detector.py`)
+Wraps YOLOv8 with KMeans kit-colour assignment. Kit classifier is initialised on the first
+frame that has ≥ 2 outfield players. GKs are assigned by field half. Canonical IDs (0–7)
+are stable from frame 1 onwards. A "⇄ Swap Teams" button in the UI flips team colours in
+the minimap when the camera perspective is reversed.
 
-### ByteTrack (`bytetrack.py`)
-Custom IoU-based multi-object tracker. No Kalman filter — the `predict()` step is a no-op, which means fast-moving objects (especially the ball) will lose their track ID on occlusion. Consider replacing with BoT-SORT or the official ByteTrack with Kalman.
+### ByteTracker (`pipeline/bytetrack.py`)
+Custom IoU-based multi-object tracker. The `predict()` step is currently a **no-op** (no
+Kalman filter) — the main weakness is ball tracking at high speed. The ball loses its
+`track_id` on fast shots when the bounding box moves too far between frames.
 
-### Homography (`homography.py`)
-Detects 46 field keypoints with YOLO, computes line intersections to find field-point pixel coordinates, then uses RANSAC `findHomography` to map pixel → metres. Works well in `2Dview.py`. **Not yet wired into the UI `VideoProcessor`** — `homography_processor.py` is still a stub.
+### Homography (`pipeline/homography/`)
+YOLO keypoint model detects up to 46 field-line endpoints; line intersections compute
+real field-point pixel coordinates; RANSAC `findHomography` maps pixel → world metres.
+The H matrix is **EMA-smoothed** (α = 0.2) to eliminate per-frame RANSAC jitter.
+Confidence threshold is **0.5** (lowered from 0.8) to survive partial pitch visibility.
 
-### Event Detection (`2D_event_detector.py`)
-Full rule-based detector for passes, shots, goals, corners, free kicks, and fouls, operating on world-coordinate positions (metres). Depends on the homography output. **Not connected to the UI pipeline** — `DummyEventDetector` is used instead.
+### Event Detector (`pipeline/events/`)
+Rule-based detector operating on world-coordinate positions (metres). Detects: pass, shot,
+goal, corner, free kick, foul. Event thresholds need tuning — shot speed is in m/frame
+and must be normalised to m/s; foul proximity (1 m) is too tight for noisy homography.
 
-### Commentary (`commentary.py`)
-Template-based generator. Reads a JSON events file (with `predictions` array), generates SRT subtitles, and optionally synthesises TTS audio and mixes it onto the video with ffmpeg. Works standalone. **Not connected to the real-time pipeline** — `DummyCommentaryGenerator` is used in the UI.
+### Commentary Generator (`pipeline/commentary/generator.py`)
+Template-based generator with per-event phrase lists. Text commentary appears in the UI's
+commentary panel in real time. A `PhiCommentaryGenerator` stub exists for LLM-based
+commentary but the model is not yet loaded. TTS audio and SRT export are standalone only.
 
-### Jersey Recognition (`jersey_recognition_pipeline/`)
-Crops the torso region using pose keypoints, pre-processes the image, and runs an OCR classifier. Works as a standalone pipeline. **Not integrated into the UI.**
+### Jersey Recognition (`experiments/jersey_recognition/`)
+Multi-stage pipeline: legibility classifier → VitPose torso crop → CNN digit recogniser.
+Works offline on player-crop folders. Not yet integrated into the real-time UI pipeline.
 
 ---
 
 ## Known Issues & TODO
 
-### Bugs (fixed in this version)
-- ✅ `BYTETracker` referenced `self._frame_id` but never initialised it → `AttributeError` on every call to track expiry
-- ✅ `object_detector.py` `process_video()` referenced `reprojection_error` / `confidence` that were never in scope → `NameError`
-- ✅ GK side-assignment compared `x1 < 0.5 * bbox_width` instead of `center_x < 0.5 * frame_width`
-- ✅ `renderer.py` passed a `list` directly to `cv2.putText()` → `TypeError`
-- ✅ `processor.py` always called `event_detector.detect([])` with a hardcoded empty list
+### High-priority
 
-### High-priority TODOs
+1. **Ball tracking continuity**: the ball loses `track_id` on fast shots (no Kalman
+   filter). Add a constant-velocity Kalman model to bridge occlusion gaps.
 
-1. **Wire homography into the UI pipeline**
-   - In `processor.py`, replace `HomographyProcessor` (stub) with a call to `homography.process_frame()`.
-   - This unblocks event detection and the radar view.
+2. **Shot speed threshold**: `ball_speed > 5` in `pipeline/events/football.py` is in
+   m/frame, not m/s. Normalise: `speed_ms = ball_speed * fps`; threshold should be ~15 m/s.
 
-2. **Wire `FootballEventDetector` into the UI pipeline**
-   - Replace `DummyEventDetector` in `processor.py` with `FootballEventDetector` from `2D_event_detector.py`.
-   - Feed it `ball_pos` and `players_pos` in world coordinates (from homography).
+3. **Foul proximity**: 1 m between players is too tight given homography noise (~0.5 m
+   typical reprojection error). Increase to 1.5–2 m and add a velocity-convergence check.
 
-3. **Wire commentary into the real-time pipeline**
-   - `DummyCommentaryGenerator` should be replaced with a live generator that pulls templates from `commentary.py` based on detected events.
+4. **Team swap mid-match**: if the camera pans 180°, Team A / Team B colours flip. The
+   "⇄ Swap Teams" button corrects this manually; ideally detect the flip automatically.
 
-4. **Add Kalman filter to ByteTrack**
-   - The current `predict()` is a no-op. Ball tracking is especially unreliable on fast shots.
+### Medium-priority
 
-5. **Integrate jersey recognition**
-   - After tracking, crop each player's torso and run `jersey_recognition_pipeline` to get jersey numbers.
-   - Map jersey numbers → player names via the loaded team sheet.
+5. **Jersey recognition integration**: map `track_id → jersey_number → player_name` and
+   forward names to the commentary generator.
 
-6. **Synchronise dual video players**
-   - The input and output video players in the UI play independently; they should share a single timer.
+6. **TTS + SRT export**: wire commentary output to an SRT buffer; add an export button in
+   the UI for a fully mixed video.
 
-7. **Remove code duplication**
-   - Kit-colour detection functions are copy-pasted between `object_detector.py` and `2Dview.py` — extract to a shared `utils/kit_colors.py`.
-   - `bytetrack.py` exists in three directories; keep one canonical copy.
-   - `homography.py` exists in three directories; same issue.
+7. **Re-ID on track re-entry**: when a player exits and re-enters the frame, ByteTrack
+   creates a new `track_id`. A re-ID embedding would restore the original ID.
 
-8. **Fill in `Integrated_Gemini/AFCS/` stubs**
-   - `pipeline.py`, `commentary_generation.py`, and `team_sheet.py` are empty files.
+8. **Synchronised video players**: the input and output video players share a common clock
+   only loosely — true frame-lock would make scrubbing consistent.
 
-9. **Event detection thresholds need tuning**
-   - Shot: `ball_speed > 5` (metres/frame at whatever FPS) — unit is ambiguous; needs normalising to m/s.
-   - Possession radius `1.5 m` may be too tight for noisy homography output.
-   - Foul proximity `1.0 m` between players is extremely tight.
+### Low-priority
 
-10. **`pipeline_workers.py` interface mismatch**
-    - `TrackingWorker.process()` calls `self.tracker.update(frame, field_positions)` but the tracker only accepts `(detections)`.
+9. **LLM commentary**: `PhiCommentaryGenerator` stub is in place. Load a small on-device
+   model (Phi-3-mini, Gemma-2B) and wire it through the `CommentaryGeneratorFactory`.
+
+10. **Per-player heatmaps**: `experiments/homography_pipeline_tests/player_stats.py` has
+    the accumulator prototype. Wire it into `_update_stats()` and render in a separate panel.
 
 ---
 
-## Contributing
+## Experiments
 
-Branch from `main`. The active feature branches are:
-- `homography` — homography research
-- `object_detection_and_tracking` — detection & tracking work
-- `UI` — front-end / Qt work
+Each directory under `experiments/` is an independent research sandbox with its own full
+`README.md`. Code here is developed and tested in isolation before being ported into the
+production `pipeline/` layer.
 
-Open a PR against `main` when a feature is ready and all existing standalone scripts still run without errors.
+| Directory | What's explored |
+|-----------|----------------|
+| `experiments/homography/` | Keypoint detection, Hough lines vs. YOLO, RANSAC tuning |
+| `experiments/object_detection/` | YOLOv8 training, kit-colour KMeans |
+| `experiments/event_detection/` | Rule-based thresholds, SoccerNet action spotting |
+| `experiments/player_tracking/` | SORT vs. ByteTrack, Kalman filter options |
+| `experiments/jersey_annotator/` | PyQt5 annotation GUI for jersey-number OCR data |
+| `experiments/jersey_recognition/` | VitPose torso crop → CNN OCR pipeline |
+| `experiments/radar_view/` | Standalone 2Dview.py (all pipeline stages in one file) |
+| `experiments/commentary/` | Template generator + TTS + SRT + ffmpeg mixer |
+| `experiments/homography_pipeline_tests/` | Integration tests, reprojection benchmarks |

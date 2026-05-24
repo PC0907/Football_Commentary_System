@@ -1,82 +1,118 @@
-# Football Object Detection
-This project utilizes object detection algorithms to analyze football matches videos by finding the position of different objects on the football pitch and classifying them into 7 different classes:  
-0 - Player team left  
-1 - Player team right  
-2 - Goalkeeper team left  
-3 - Goalkeeper team right  
-4 - Ball  
-5 - Main referee  
-6 - Side referee  
-7 - Staff members  
-## Demo
-https://github.com/Mostafa-Nafie/Football-Object-Detection/assets/44211916/aaac347e-f21b-4433-841c-0cefea8770d2
+# Object Detection — YOLO Training & Experiments
 
+This directory contains training scripts, notebooks, and evaluation code for the
+**YOLOv8 object detection model** that identifies players, goalkeepers, the ball,
+referees, and staff in broadcast football footage.
 
+The trained weights live at `models/player_ball_detector_yolov8.pt` (project root).
+The production inference class is `pipeline/detector.py::ObjectDetector`.
 
-## Quick Guide
+---
 
-<details><summary>Install</summary>
-  
-```
-git clone https://github.com/Mostafa-Nafie/Football-Object-Detection.git
-cd "./Football-Object-Detection"
-pip install requirements.txt
-```
+## Purpose
 
-</details>
+Broadcast football video contains multiple object classes that move, occlude each other,
+and change appearance dramatically (kit colours vary by team, lighting varies by stadium).
+The goals of this component are:
 
-<details><summary>Inference on video</summary>
+1. Detect and box all relevant objects in every frame.
+2. Classify each detection into 8 canonical classes (see below).
+3. Distinguish the two teams via **kit-colour KMeans clustering** (not a separate model).
 
-To run the model on a video, run the following command: 
-```
-python main.py /path/to/video
-```
-The annotated video will be saved to "Football Object Detection/output" folder
+### Canonical class mapping
 
-</details>
+| ID | Label | Notes |
+|----|-------|-------|
+| 0 | Player-L (Team A) | Outfield player, left team |
+| 1 | Player-R (Team B) | Outfield player, right team |
+| 2 | GK-L | Goalkeeper, left half |
+| 3 | GK-R | Goalkeeper, right half |
+| 4 | Ball | |
+| 5 | Main Ref | |
+| 6 | Side Ref | |
+| 7 | Staff | |
 
-## Object Detection model
-The model used for object detection is <a href=https://github.com/ultralytics/ultralytics>YOLOv8</a>, it was trained on <a href=https://drive.google.com/drive/folders/17w9yhEDZS7gLdZGjiwPQytLz3-iTUpKm>SoccerNet Dataset</a> for 25 epochs, to classify the objects into only 5 different classes:  
-0 - Player  
-1 - Goalkeeper  
-2 - Ball  
-3 - Main referee  
-4 - Side referee  
-5 - Staff members  
+The raw YOLO model outputs only **6 classes** (outfield player, GK, ball, main ref,
+side ref, staff) — team separation is done post-inference via kit colour. See
+[How It Works](#how-it-works).
 
-## How it works ?  
-The model uses the **first frame** of the video to extract some important information by performing the following steps:  
-**1. Extracting the grass color**  
-It works by selecting only the green colors in the frame and masking out all other elements, then taking the average color of the non-maksed parts  
-![image](https://github.com/Mostafa-Nafie/Football-Object-Detection/assets/44211916/9369efee-4e1f-4650-b7d5-ddd69aaabd3b)
+---
 
-**2. Finding the kit color of each one of the two teams**  
-This can be done by cutting the players boxes out of the image and then removing the grass from the background of each player and finally get the average color of the remaining pixels, which will be the player's kit color, then the K-Means clustering alogrithm will be used on the BGR values of the kits colors, so that each team's kits will be clustered together in one group, with its centroid representing the team's kit color for future comparisons.
-![image](https://github.com/Mostafa-Nafie/Football-Object-Detection/assets/44211916/a968a019-e9cf-4356-b8bb-493874c1c26d)
+## Files
 
-To remvoe the grass color from each player's background, I filter out the region of colors around the grass color that we got in the first step in the HSV color space.
-![image](https://github.com/Mostafa-Nafie/Football-Object-Detection/assets/44211916/7afb7e27-97dd-42cb-9e12-421ef231a5b4)  
+| File | Description |
+|------|-------------|
+| `Football_Object_Detection.ipynb` | Main training notebook. Downloads SoccerNet dataset, configures YOLOv8 training, evaluates mAP. |
+| `PlayerAndBall.ipynb` | Earlier notebook focusing on player + ball detection only (2-class). |
+| `main.py` | CLI inference script: runs the trained model on a video and saves annotated output. |
+| `mainFawwaz.py` | Personal variant of `main.py` with additional debug overlays and local dataset paths. |
+| `track.py` | Adds multi-object tracking (ByteTrack) on top of YOLO detections. |
+| `track_kaggle.py` | Kaggle-adapted version of `track.py` for running in a Kaggle notebook environment. |
+| `requirements.txt` | Python dependencies for this experiment (ultralytics, opencv-python, etc.). |
+| `weights/best.pt` | Best weights checkpoint from training. |
+| `weights/last.pt` | Last-epoch checkpoint. |
+| `CustomCode/` | Custom detection scripts: `detect_ball.py`, `detect_ball2.py` — earlier ball-only experiments with YOLOv5. |
+| `test_videos/` | Sample video clips used for evaluation. |
+| `output/` | Annotated output videos from inference runs. |
 
-**3. Labeling each team as left or right**  
-To do this, I find the average position of each team's players on the x axis, and the team with the least average position value will be labeled as "Team Left" and the other one as "Team Right"
-![image](https://github.com/Mostafa-Nafie/Football-Object-Detection/assets/44211916/659fe1ec-2ae9-4a15-b109-302b3d2b0e71)  
+---
 
-For **every frame** of the video, the model operates as follows:  
-**1. Running YOLO model inference on the current frame**  
-The model classifies each object into one of the 5 classes  
-![image](https://github.com/Mostafa-Nafie/Football-Object-Detection/assets/44211916/3c5d2d05-4f85-4b0e-9389-c29d14aeb17d)
+## How It Works
 
-**2. Finding the kit color of each player**  
-By using the same method as before, removing the grass background from the player's bounding box and getting the average color of the remaining pixels.  
+### 1 — Dataset
+Training data is from the **SoccerNet Object Tracking** dataset (broadcast camera, top-down
+and lateral views). The dataset provides bounding boxes for players, goalkeepers, ball, and
+referees across many European league matches.
 
-**3. Classifying each player into "team 0" or "team 1"**  
-This is done by finding out to which closest K-Means centroid (found in the first frame) to the player's kit color.
-![image](https://github.com/Mostafa-Nafie/Football-Object-Detection/assets/44211916/68a7d2c0-4d06-465a-a5dc-a7f1c8878b6e)
+### 2 — YOLO training
+YOLOv8m (medium) was trained for 25 epochs on the SoccerNet dataset. The model was fine-tuned
+from the official YOLOv8 pretrained weights (COCO ImageNet backbone). Key hyperparameters:
+- Input resolution: 1280 × 720 (native broadcast resolution)
+- Batch size: 8 (GPU memory limit)
+- Confidence threshold at inference: **0.5**
 
-**4. Labeling each team as "Left" or "Right"**  
-This is done by comparing the team's label (0 or 1) to the label of the "Team Left" found in the first frame
+### 3 — Kit-colour team separation (post-inference)
 
-**5. Labeling each Goalkeeper**
-The goalkeeper is labeled "GK Left" if he's found on the left hand side of the frame, and labeled "GK Right" otherwise.
+Because YOLO cannot know which team a player belongs to (that changes every match), team
+assignment is done geometrically using **KMeans on HSV kit colours**:
 
-Further explanation of the model can be found in the jupyter notebook.
+1. **First frame**: extract all outfield-player bounding-box crops → remove grass background
+   (mask HSV values near the field's grass colour) → compute average remaining pixel colour →
+   cluster into 2 groups with KMeans(n_clusters=2).
+2. **Left-team determination**: find the spatial average x-position of each KMeans cluster.
+   The cluster with the smaller mean x sits on the left → labelled Team A.
+3. **Every subsequent frame**: run KMeans prediction on each new player's crop colour and
+   assign Team A or Team B accordingly.
+
+GKs are separated by position: a GK detected in the left half of the frame → GK-L (class 2),
+right half → GK-R (class 3). This works because goalkeepers stay near their own goal.
+
+---
+
+## Problems Faced
+
+| Problem | Root Cause | Fix |
+|---------|-----------|-----|
+| Teams swapped mid-match | KMeans cluster order is arbitrary; left/right team can flip if camera pans | Re-compute `_left_label` on a per-frame basis — or cache it from frame 1 and keep stable |
+| Ball missed at high speed | Motion blur + small bounding box below confidence threshold | Lower conf to 0.5; also consider tracking with Kalman filter to bridge gaps |
+| Players merge into one box | Occlusion in dense formations | YOLO limitation; tracking helps assign IDs but doesn't fix detection |
+| GK misclassified as outfield | Similar kit colour to teammates | GK is detected as a separate YOLO class (class 1) — already handled |
+| Night game / floodlight glare | Training data lacks night-game examples | Re-train with augmented (low-light) data |
+| Wrong team colour on first frame | Player crop is grass-heavy → wrong average colour | Tuned grass-mask HSV range; added minimum-crop-area guard |
+
+---
+
+## What Still Needs Fixing / Future Work
+
+- [ ] **Team-swap robustness at camera pan**: if the camera pans 180°, the left/right
+  assignment computed on frame 1 becomes wrong. Add a "Swap Teams" button in the UI (already
+  exists) and expose this as a runtime toggle.
+- [ ] **Re-train on larger, more diverse dataset**: the current model was trained on a
+  relatively small SoccerNet subset. More stadiums, more leagues, night games, and VAR
+  zoom shots would improve generalisation.
+- [ ] **Confidence-aware suppression**: low-confidence detections (0.3–0.5) cause flickering.
+  Consider a two-threshold system (high = keep, low = only keep if tracked previously).
+- [ ] **Ball tracking continuity**: the ball disappears for several frames on fast shots.
+  A dedicated ball-tracking head (Kalman + constant-velocity model) could bridge gaps.
+- [ ] **Staff / side-ref removal**: staff members and side referees clutter the minimap.
+  Either filter them out or assign them a distinct colour in the minimap.

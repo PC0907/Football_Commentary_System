@@ -50,7 +50,7 @@ class ObjectDetector:
         self.model_path = (
             Path(model_path).resolve()
             if model_path
-            else Path(__file__).resolve().parents[1] / "models" / "best_object.pt"
+            else Path(__file__).resolve().parents[1] / "models" / "player_ball_detector_yolov8.pt"
         )
         self.conf_threshold = conf_threshold
         self.device = device
@@ -187,7 +187,7 @@ def process_video(video_path: str, model_path: str | None = None,
     """
     try:
         if model_path is None:
-            model_path = str(Path(__file__).resolve().parents[1] / "models" / "best_object.pt")
+            model_path = str(Path(__file__).resolve().parents[1] / "models" / "player_ball_detector_yolov8.pt")
 
         os.makedirs(output_dir, exist_ok=True)
 
@@ -310,6 +310,6 @@ def process_video(video_path: str, model_path: str | None = None,
 if __name__ == "__main__":
     import sys
     _video = sys.argv[1] if len(sys.argv) > 1 else "/home/fawwaz/Downloads/footballVideos/match_video_022.mp4"
-    _model = sys.argv[2] if len(sys.argv) > 2 else str(Path(__file__).parent / "best_object.pt")
+    _model = sys.argv[2] if len(sys.argv) > 2 else str(Path(__file__).resolve().parents[1] / "models" / "player_ball_detector_yolov8.pt")
     if not process_video(_video, _model):
         sys.exit(1)

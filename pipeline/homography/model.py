@@ -25,7 +25,7 @@ KEYPOINT_NAMES = [
 
 # Model weights live in models/ at the project root
 from pathlib import Path as _Path
-MODEL_PATH = str(_Path(__file__).parents[2] / "models" / "best.pt")
+MODEL_PATH = str(_Path(__file__).parents[2] / "models" / "field_keypoint_detector_yolov8.pt")
 CONFIDENCE_THRESHOLD = 0.5   # lowered from 0.8 — more keypoints survive in typical broadcast shots
 
 # Field Points and their corresponding line pairs

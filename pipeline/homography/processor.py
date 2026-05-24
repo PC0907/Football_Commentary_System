@@ -3,8 +3,8 @@ HomographyProcessor — wraps homography.py so the VideoProcessor pipeline can
 call a single `.process(frame, detections)` method and get back world-coordinate
 positions plus a confidence score.
 
-Uses the cached YOLO keypoint model (best.pt in this directory) via the
-`get_model()` singleton in homography.py to avoid reloading on every frame.
+Uses the cached YOLO keypoint model (field_keypoint_detector_yolov8.pt in models/) via the
+`get_model()` singleton in model.py to avoid reloading on every frame.
 """
 
 import logging

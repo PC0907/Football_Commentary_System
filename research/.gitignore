@@ -1,0 +1,18 @@
+third_party/
+outputs/
+cache/
+__pycache__/
+*.pyc
+logs/
+kaggle/build/
+kaggle/handoff/
+runs/
+mlruns/
+*.pt
+*.pth
+.ipynb_checkpoints/
+mlflow.db
+# internal working notes (kept locally, not published)
+PLAN.md
+JOURNAL.md
+RESULTS.md

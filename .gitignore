@@ -33,10 +33,14 @@ env.bak/
 venv.bak/
 
 # ── App-generated runtime artifacts ──────────────────────────────────────────
-output/          # processed video output dirs (any level)
-*.log            # app.log, etc.
-*.npy            # numpy save files (e.g. field_point_coordinates.npy)
-*.srt            # generated subtitle / commentary files
+# processed video output dirs (any level)
+output/
+# logs (app.log, etc.) — git has no inline comments, so the comment sits on its own line
+*.log
+# numpy save files (e.g. field_point_coordinates.npy)
+*.npy
+# generated subtitle / commentary files
+*.srt
 
 # ── Environment / secrets ─────────────────────────────────────────────────────
 .env
@@ -62,3 +66,6 @@ ehthumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# duplicate of experiments/homography/Final_homography_testing_code.ipynb (differs only in execution counts)
+/Homography/

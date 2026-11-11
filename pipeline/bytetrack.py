@@ -173,13 +173,18 @@ class STrack:
 
     # ── lifecycle ─────────────────────────────────────────────────────────────
 
-    def activate(self, track_id: int):
-        """Assign an ID and initialise the Kalman filter from the first detection."""
+    def activate(self, track_id: int, frame_id: int = 1):
+        """Assign an ID and initialise the Kalman filter from the first detection.
+
+        ``frame_id`` is the tracker's *global* frame counter; ``start_frame`` /
+        ``end_frame`` are expressed in it so that lost-track ageing is correct.
+        """
         self.track_id     = track_id
         self.state        = TrackState.TRACKED
         self.is_activated = True
-        self.frame_id     = 1
-        self.start_frame  = 1
+        self.frame_id     = frame_id
+        self.start_frame  = frame_id
+        self.end_frame    = frame_id
         self._mean, self._covariance = _kalman.initiate(self._cx_cy_w_h)
 
     def predict(self):
@@ -195,11 +200,15 @@ class STrack:
             )
             self._sync_tlwh()
 
-    def update(self, new_det: "STrack"):
+    def update(self, new_det: "STrack", frame_id: int | None = None):
         """
         Fuse a matched detection *new_det* into the Kalman state (correction step).
+
+        ``frame_id`` is the tracker's global frame counter (the previous version used a
+        per-track counter here, which made ``end_frame`` incomparable with the global
+        frame and broke lost-track ageing).
         """
-        self.frame_id      += 1
+        self.frame_id       = frame_id if frame_id is not None else self.frame_id + 1
         self.tracklet_len  += 1
 
         z = new_det._cx_cy_w_h
@@ -236,6 +245,8 @@ class BYTETracker:
 
     Tracks that go unmatched for more than *track_buffer* frames are removed.
     """
+
+    BALL_CLASS = 4   # canonical class id of the ball (see pipeline/utils.LABELS)
 
     def __init__(
         self,
@@ -289,62 +300,58 @@ class BYTETracker:
         high_conf = [s for s in stracks if s.score >= self.track_thresh]
         low_conf  = [s for s in stracks if s.score <  self.track_thresh]
 
-        # ── Predict all active tracks ─────────────────────────────────────────
-        for t in self.tracked_tracks:
+        # ── Predict all tracks (tracked *and* lost, so lost ones can be recovered)
+        for t in self.tracked_tracks + self.lost_tracks:
             if t.is_activated:
                 t.predict()
 
-        # ── Pass 1 : high-confidence detections ↔ active tracks ───────────────
-        pool   = self.tracked_tracks
+        # ── Pass 1 : high-confidence detections ↔ tracked + lost tracks ───────
+        # (the previous version never offered lost tracks for re-association, so a
+        # player was given a new ID after every occlusion)
+        pool   = self.tracked_tracks + self.lost_tracks
         cost1  = self._iou_distance(pool, high_conf)
         m1, u_track1, u_det1 = self._match(cost1, pool, high_conf, self.match_thresh)
 
-        newly_activated: list[STrack] = []
+        fid = self._frame_id
+        tracked_now: list[STrack] = []
         for it, id_ in m1:
-            pool[it].update(high_conf[id_])
-            newly_activated.append(pool[it])
+            pool[it].update(high_conf[id_], fid)     # also re-activates a lost track
+            tracked_now.append(pool[it])
 
-        # ── Pass 2 : low-confidence detections ↔ unmatched active tracks ──────
-        r_tracks = [pool[i] for i in u_track1]
-        newly_lost: list[STrack] = []
-
-        if low_conf:
+        # ── Pass 2 : low-confidence detections ↔ unmatched *tracked* tracks ───
+        r_tracks = [pool[i] for i in u_track1 if pool[i].state == TrackState.TRACKED]
+        if low_conf and r_tracks:
             cost2 = self._iou_distance(r_tracks, low_conf)
             m2, u_track2, _ = self._match(cost2, r_tracks, low_conf, thresh=0.5)
             for it, id_ in m2:
-                r_tracks[it].update(low_conf[id_])
-                newly_activated.append(r_tracks[it])
+                r_tracks[it].update(low_conf[id_], fid)
+                tracked_now.append(r_tracks[it])
             final_unmatched = [r_tracks[i] for i in u_track2]
         else:
             final_unmatched = r_tracks
 
         for t in final_unmatched:
-            if t.state != TrackState.LOST:
-                t.mark_lost()
-                newly_lost.append(t)
+            t.mark_lost()
 
         # ── Initialise new tracks from unmatched high-conf detections ─────────
         for id_ in u_det1:
             det = high_conf[id_]
             if det.score >= self.track_thresh:
                 self.track_id_count += 1
-                det.activate(self.track_id_count)
-                newly_activated.append(det)
+                det.activate(self.track_id_count, fid)
+                tracked_now.append(det)
 
-        # ── Age out lost tracks ───────────────────────────────────────────────
-        surviving_lost: list[STrack] = []
-        for t in self.lost_tracks + newly_lost:
-            if (self._frame_id - t.end_frame) > self.max_time_lost:
-                t.mark_removed()
-            else:
-                surviving_lost.append(t)
-        self.lost_tracks = surviving_lost
+        # ── Age out lost tracks (end_frame is now on the global frame clock) ──
+        matched_ids = {id(t) for t in tracked_now}
+        self.lost_tracks = [
+            t for t in pool
+            if t.state == TrackState.LOST and id(t) not in matched_ids
+            and (fid - t.end_frame) <= self.max_time_lost
+        ]
 
-        # ── Update active set ─────────────────────────────────────────────────
-        self.tracked_tracks = (
-            [t for t in self.tracked_tracks if t.state == TrackState.TRACKED]
-            + newly_activated
-        )
+        # ── Update active set (each track exactly once — the previous version
+        #    appended matched tracks twice, duplicating every output box) ────────
+        self.tracked_tracks = tracked_now
 
         # ── Build output list ─────────────────────────────────────────────────
         output = []
@@ -372,6 +379,10 @@ class BYTETracker:
         cost = np.ones((n, m), dtype=np.float32)
         for i, t in enumerate(tracks):
             for j, d in enumerate(detections):
+                # never associate the ball with a person (canonical ball id = 4);
+                # person classes are not gated because per-frame team labels flicker
+                if (t.cls == self.BALL_CLASS) != (d.cls == self.BALL_CLASS):
+                    continue
                 cost[i, j] = 1.0 - self._iou(t.tlwh, d.tlwh)
         return cost
 
